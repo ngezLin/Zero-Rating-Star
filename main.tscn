@@ -1,0 +1,62 @@
+[gd_scene format=3 uid="uid://by6lckbnwgtg3"]
+
+[ext_resource type="PackedScene" uid="uid://dhbb68iarv1sk" path="res://player.tscn" id="1_ig7tw"]
+[ext_resource type="PackedScene" uid="uid://c8n1h2j4l7p0x" path="res://hotel_layout.tscn" id="2_hotel"]
+[ext_resource type="PackedScene" uid="uid://cb5lwq82218u" path="res://pickup_box.tscn" id="3_box"]
+[ext_resource type="PackedScene" uid="uid://dfb77g02218u" path="res://npc.tscn" id="4_npc"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_0xm2m"]
+sky_material = SubResource("ProceduralSkyMaterial_ig7tw")
+
+[sub_resource type="Environment" id="Environment_h2yge"]
+background_mode = 2
+sky = SubResource("Sky_0xm2m")
+glow_enabled = true
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_sxki6"]
+size = Vector3(200, 0.5, 200)
+
+[sub_resource type="BoxMesh" id="BoxMesh_m7ri8"]
+size = Vector3(200, 0.5, 200)
+
+[node name="Main" type="Node3D" unique_id=950373867]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1051399298]
+environment = SubResource("Environment_h2yge")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=178284018]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 35.004734, 0)
+shadow_enabled = true
+
+[node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=308933120]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=937546994]
+shape = SubResource("BoxShape3D_sxki6")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D" unique_id=1155551397]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.024333477, -0.073265076, -0.031985283)
+mesh = SubResource("BoxMesh_m7ri8")
+
+[node name="HotelLayout" parent="." unique_id=1133220909 instance=ExtResource("2_hotel")]
+
+[node name="Player" parent="." unique_id=1024966981 instance=ExtResource("1_ig7tw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.18, 4)
+
+[node name="Box1" parent="." unique_id=3000001 instance=ExtResource("3_box")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0.5)
+
+[node name="Box2" parent="." unique_id=3000002 instance=ExtResource("3_box")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 1.5, -10)
+
+[node name="Box3" parent="." unique_id=3000003 instance=ExtResource("3_box")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 1.5, -10)
+
+[node name="NPC1" parent="." unique_id=4000001 instance=ExtResource("4_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.18, -9)
+
+[node name="NPC2" parent="." unique_id=4000002 instance=ExtResource("4_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1.18, -12)
