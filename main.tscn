@@ -4,6 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://c8n1h2j4l7p0x" path="res://hotel_layout.tscn" id="2_hotel"]
 [ext_resource type="PackedScene" uid="uid://cb5lwq82218u" path="res://pickup_box.tscn" id="3_box"]
 [ext_resource type="PackedScene" uid="uid://dfb77g02218u" path="res://npc.tscn" id="4_npc"]
+[ext_resource type="PackedScene" uid="uid://csguf4r3vyhup" path="res://models/Cthapel.glb" id="5_lquwl"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -60,3 +61,8 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.18, -9)
 
 [node name="NPC2" parent="." unique_id=4000002 instance=ExtResource("4_npc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1.18, -12)
+
+[node name="Node" type="Node" parent="." unique_id=493880338]
+
+[node name="Cthapel" parent="." unique_id=1025471099 instance=ExtResource("5_lquwl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.47481215, 2.598363, -3.6098585)
