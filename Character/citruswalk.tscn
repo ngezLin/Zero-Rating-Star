@@ -1,26 +1,26 @@
 [gd_scene format=3 uid="uid://c0ucwk8eqeqpf"]
 
-[ext_resource type="PackedScene" uid="uid://bx22sbgof7em8" path="res://models/Citruswalk.glb" id="1_6kj5m"]
+[ext_resource type="PackedScene" uid="uid://dkps6kr4y7b0x" path="res://models/Citruswalk.glb" id="1_6kj5m"]
 
 [node name="Citruswalk" unique_id=145872629 instance=ExtResource("1_6kj5m")]
 
-[node name="Skeleton3D" parent="ParentNode/Armature" parent_id_path=PackedInt32Array(1295979863) index="0" unique_id=434910872]
-bones/1/position = Vector3(0.0045314697, -0.9929045, 0.28396004)
-bones/1/rotation = Quaternion(0.27542144, -0.33783272, -0.09551656, 0.89492387)
-bones/2/rotation = Quaternion(0.1579279, 0.8402642, 0.3903668, -0.34150958)
-bones/3/rotation = Quaternion(0.9998882, -0.011507199, 0.0005057984, -0.009547555)
-bones/3/scale = Vector3(1.0000476, 1.0000004, 1)
-bones/4/rotation = Quaternion(-0.16577749, 0.0039280658, -0.03897089, 0.98538506)
-bones/5/rotation = Quaternion(0.79263043, 0.027841635, 0.019648895, 0.60874933)
-bones/11/rotation = Quaternion(0.98563045, 0.015565973, -0.010200949, -0.16788815)
-bones/11/scale = Vector3(1.0000404, 0.9999998, 1.0000223)
-bones/14/rotation = Quaternion(-0.5244061, -0.053684343, 0.09603719, 0.8443301)
-bones/15/rotation = Quaternion(0.7047291, -0.06965338, -0.06924344, 0.7026456)
-bones/19/rotation = Quaternion(0.16291629, 0.8383478, 0.40462682, -0.32696846)
-bones/20/rotation = Quaternion(-0.016731268, -0.0112593565, -0.006052124, 0.99977833)
-bones/21/rotation = Quaternion(-0.016730916, -0.0112592755, -0.006052108, 0.9997784)
-bones/22/rotation = Quaternion(-0.15657672, -3.819887e-08, 0.021755124, 0.98742616)
-bones/26/rotation = Quaternion(-0.069000855, -0.11392482, -0.6456818, 0.7519009)
-bones/27/rotation = Quaternion(0.111770436, 0.48936594, -0.03750198, 0.864073)
-bones/34/rotation = Quaternion(-0.038842548, -0.024101447, 0.63741434, 0.76916414)
-bones/37/rotation = Quaternion(0.091301374, -0.46846217, 0.014589641, 0.87863225)
+[node name="Skeleton3D" parent="ParentNode/Armature" parent_id_path=PackedInt32Array(530407823) index="0" unique_id=1069067072]
+bones/1/position = Vector3(0.0035610043, -0.015379222, 0.28223425)
+bones/1/rotation = Quaternion(0.42799753, -0.20067094, -0.23819588, 0.84841734)
+bones/2/rotation = Quaternion(0.15792792, 0.8402641, 0.39036667, -0.34150973)
+bones/3/rotation = Quaternion(0.91629636, -0.2768422, 0.014931213, -0.28902677)
+bones/3/scale = Vector3(1.0000479, 1.0000004, 0.99999994)
+bones/4/rotation = Quaternion(-0.16551244, 0.0051908023, -0.024306942, 0.9858945)
+bones/5/rotation = Quaternion(0.6830542, -0.013057748, -0.018765198, 0.7300098)
+bones/11/rotation = Quaternion(0.96994495, -0.19329615, -0.0026224798, -0.14777191)
+bones/11/scale = Vector3(1.00004, 1, 1.0000225)
+bones/14/rotation = Quaternion(-0.015960226, -0.0014007519, -0.003318669, 0.9998662)
+bones/15/rotation = Quaternion(0.71189773, -0.009923, -0.010401172, 0.702136)
+bones/19/rotation = Quaternion(0.12303137, 0.8488879, 0.3815396, -0.34449962)
+bones/20/rotation = Quaternion(0.023172522, 0.0117954, -0.026502589, 0.99931055)
+bones/21/rotation = Quaternion(0.02317299, 0.011795484, -0.02650257, 0.9993105)
+bones/22/rotation = Quaternion(0.05866059, 2.294259e-08, -0.08626849, 0.99454343)
+bones/26/rotation = Quaternion(-0.17956556, -0.06799755, -0.48626408, 0.8524552)
+bones/27/rotation = Quaternion(0.40541998, 0.45280483, -0.30146265, 0.73465824)
+bones/34/rotation = Quaternion(-0.21193129, -0.05699927, 0.5217093, 0.82441235)
+bones/37/rotation = Quaternion(0.6041807, -0.33217484, 0.29276606, 0.6625056)

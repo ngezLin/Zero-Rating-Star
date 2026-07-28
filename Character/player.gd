@@ -62,15 +62,7 @@ var original_parent: Node = null
 const BASE_FOV = 75.0
 const SPRINT_FOV = 85.0
 
-@onready var accessories: Node3D = $BodyMesh/Accessories
-@onready var bellboy_hat: MeshInstance3D = $BodyMesh/Accessories/BellboyHat
-@onready var cs_headset: Node3D = $BodyMesh/Accessories/CSHeadset
-@onready var security_cap: Node3D = $BodyMesh/Accessories/SecurityCap
-@onready var engineer_hat: Node3D = $BodyMesh/Accessories/EngineerHat
-@onready var flashlight_light: SpotLight3D = $BodyMesh/RightShoulder/RightHand/FlashlightLight
-
-enum Role { JANITOR, CUSTOMER_SERVICE, SECURITY, ENGINEER }
-var current_role: Role = Role.JANITOR
+@onready var flashlight_light: SpotLight3D = get_node_or_null("BodyMesh/RightShoulder/RightHand/FlashlightLight")
 
 enum CameraMode { THIRD_PERSON, FIRST_PERSON, FRONT_VIEW }
 var current_camera_mode = CameraMode.THIRD_PERSON
@@ -115,10 +107,6 @@ func _ready() -> void:
 	highlight_material.shading_mode = StandardMaterial3D.SHADING_MODE_UNSHADED
 	highlight_material.albedo_color = Color(1.0, 1.0, 1.0, 0.25)
 	highlight_material.transparency = StandardMaterial3D.TRANSPARENCY_ALPHA
-	
-	# Lock to Janitor role
-	current_role = Role.JANITOR
-	set_role(current_role)
 	
 	# Initialize hotbar selection
 	_select_slot(0)
@@ -474,20 +462,23 @@ func _physics_process(delta: float) -> void:
 	spring_arm.rotation.y = lerp_angle(spring_arm.rotation.y, target_spring_yaw, delta * 8.0)
 	head.rotation.x = lerp(head.rotation.x, target_head_pitch, delta * 15.0)
 	
-	# Dynamically show/hide the player's eyes and uniform accessories depending on perspective
+	# Dynamically show/hide the 3D Citrus character model depending on perspective
+	var citrus_model = body_mesh.get_node_or_null("CitrusModel")
 	if current_camera_mode == CameraMode.FIRST_PERSON:
 		camera.cull_mask = 1048573 # Hide layer 2 (eyes) to prevent clipping
-		accessories.visible = false
+		if citrus_model:
+			citrus_model.visible = false
 	else:
 		camera.cull_mask = 1048575 # Show all layers (including eyes)
-		accessories.visible = true
+		if citrus_model:
+			citrus_model.visible = true
 
 	# --- Eye tracking (look at camera in Front View) ---
-	if current_camera_mode == CameraMode.FRONT_VIEW:
+	if current_camera_mode == CameraMode.FRONT_VIEW and is_instance_valid(left_eye) and is_instance_valid(right_eye):
 		var target_pos = camera.global_position
 		left_eye.look_at(target_pos, Vector3.UP)
 		right_eye.look_at(target_pos, Vector3.UP)
-	else:
+	elif is_instance_valid(left_eye) and is_instance_valid(right_eye):
 		left_eye.rotation = Vector3.ZERO
 		right_eye.rotation = Vector3.ZERO
 
@@ -657,11 +648,37 @@ func _physics_process(delta: float) -> void:
 			is_tasking = false
 			task_progress = 0.0
 
-	move_and_slide()
+	# --- Update 3D Citrus Model Animations ---
+	citrus_model = body_mesh.get_node_or_null("CitrusModel")
+	if citrus_model:
+		var anim_player = citrus_model.find_child("AnimationPlayer", true, false) as AnimationPlayer
+		if anim_player:
+			if anim_player.has_animation("Armature|Armature"):
+				var anim_lib = anim_player.get_animation_library("")
+				if anim_lib and anim_lib.has_animation("Armature|Armature"):
+					anim_lib.remove_animation("Armature|Armature")
+			
+			var walk_anim = "Armature|preset_biped_walk"
+			var anim_to_play = walk_anim if anim_player.has_animation(walk_anim) else ""
+			if anim_to_play == "" and anim_player.get_animation_list().size() > 0:
+				anim_to_play = anim_player.get_animation_list()[0]
 
-func set_role(role: Role) -> void:
-	current_role = role
-	bellboy_hat.visible = (role == Role.JANITOR)
-	cs_headset.visible = (role == Role.CUSTOMER_SERVICE)
-	security_cap.visible = (role == Role.SECURITY)
-	engineer_hat.visible = (role == Role.ENGINEER)
+			if anim_to_play != "":
+				var anim = anim_player.get_animation(anim_to_play)
+				if anim and anim.loop_mode != Animation.LOOP_LINEAR:
+					var anim_lib = anim_player.get_animation_library("")
+					if anim_lib:
+						anim = anim.duplicate()
+						anim.loop_mode = Animation.LOOP_LINEAR
+						anim_lib.add_animation(anim_to_play, anim)
+
+				var speed = Vector2(velocity.x, velocity.z).length()
+				if speed > 0.3 and is_on_floor():
+					if anim_player.current_animation != anim_to_play or not anim_player.is_playing():
+						anim_player.play(anim_to_play)
+					anim_player.speed_scale = clamp(speed / 6.0, 0.6, 1.8)
+				else:
+					if anim_player.is_playing():
+						anim_player.stop()
+
+	move_and_slide()

@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://b7oam4k2p8r0x"]
 
-[ext_resource type="Script" path="res://bed_task.gd" id="1_bed"]
+[ext_resource type="Script" path="res://scripts/bed_task.gd" id="1_bed"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_messy"]
 albedo_color = Color(0.6, 0.45, 0.45, 1)
