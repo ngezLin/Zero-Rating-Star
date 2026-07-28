@@ -6,7 +6,7 @@
 [ext_resource type="PackedScene" uid="uid://dfb77g02218u" path="res://npc.tscn" id="4_npc"]
 [ext_resource type="PackedScene" uid="uid://csguf4r3vyhup" path="res://models/Cthapel.glb" id="5_lquwl"]
 [ext_resource type="Script" uid="uid://cwmn2j3ycb8hh" path="res://citrus_3d.gd" id="6_5vw27"]
-[ext_resource type="PackedScene" uid="uid://bx22sbgof7em8" path="res://models/Citruswalk.glb" id="6_7mycd"]
+[ext_resource type="PackedScene" uid="uid://dkps6kr4y7b0x" path="res://Citruswalk.glb" id="7_272bh"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -49,12 +49,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.01170969, -0.08743715, 0.01
 mesh = SubResource("BoxMesh_m7ri8")
 
 [node name="HotelLayout" parent="." unique_id=1133220909 instance=ExtResource("2_hotel")]
+visible = false
 
 [node name="Player" parent="." unique_id=1024966981 instance=ExtResource("1_ig7tw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.18, 4)
 
 [node name="Box1" parent="." unique_id=3000001 instance=ExtResource("3_box")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7417364, 1.5, 0.5)
 
 [node name="Box2" parent="." unique_id=3000002 instance=ExtResource("3_box")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7, 1.5, -10)
@@ -80,5 +81,5 @@ script = ExtResource("6_5vw27")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.8415539, 0.23773289, -1.3687627)
 shape = SubResource("CapsuleShape3D_5vw27")
 
-[node name="Citruswalk" parent="Citrus3d" unique_id=145872629 instance=ExtResource("6_7mycd")]
-transform = Transform3D(-0.6969873, 0, 0.71708345, 0, 1, 0, -0.71708345, 0, -0.6969873, 0.81748915, 0.19084412, -1.3318352)
+[node name="Citruswalk" parent="Citrus3d" unique_id=1472181402 instance=ExtResource("7_272bh")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1572824, 0.25, -2.6879869)
