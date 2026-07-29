@@ -3,6 +3,7 @@
 [ext_resource type="PackedScene" uid="uid://dkps6kr4y7b0x" path="res://models/Citruswalk.glb" id="1_6kj5m"]
 
 [node name="Citruswalk" unique_id=145872629 instance=ExtResource("1_6kj5m")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
 
 [node name="Skeleton3D" parent="ParentNode/Armature" parent_id_path=PackedInt32Array(530407823) index="0" unique_id=1069067072]
 bones/1/position = Vector3(0.0035610043, -0.015379222, 0.28223425)

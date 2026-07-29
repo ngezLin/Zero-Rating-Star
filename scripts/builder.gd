@@ -31,7 +31,7 @@ func _ready():
 	gridmap.mesh_library = mesh_library
 	
 	# Auto-load the pre-built starter city map on startup
-	var sample_map = ResourceLoader.load("res://sample map/map.res")
+	var sample_map = ResourceLoader.load("res://sample_map/map.res")
 	if sample_map:
 		map = sample_map
 		for cell in map.structures:
@@ -174,7 +174,7 @@ func action_load_resources():
 		
 		gridmap.clear()
 		
-		map = ResourceLoader.load("res://sample map/map.res")
+		map = ResourceLoader.load("res://sample_map/map.res")
 		if not map:
 			map = DataMap.new()
 		for cell in map.structures:

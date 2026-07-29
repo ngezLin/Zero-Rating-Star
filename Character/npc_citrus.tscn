@@ -1,0 +1,28 @@
+[gd_scene format=3 uid="uid://c8npccitrus"]
+
+[ext_resource type="Script" path="res://Character/npc_citrus.gd" id="1_npccitrus_script"]
+[ext_resource type="PackedScene" uid="uid://dkps6kr4y7b0x" path="res://models/Citruswalk.glb" id="2_citrus_model"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_citrus"]
+radius = 0.614
+height = 3.616
+
+[node name="Npc_Citrus" type="CharacterBody3D" groups=["interactable", "npc"]]
+collision_layer = 1
+collision_mask = 1
+script = ExtResource("1_npccitrus_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.808, 0)
+shape = SubResource("CapsuleShape3D_citrus")
+
+[node name="Citruswalk" parent="." instance=ExtResource("2_citrus_model")]
+transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, -0.10, 0)
+
+[node name="StatusLabel3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.8, 0)
+visible = false
+billboard = 1
+text = "Check-in Citrus"
+font_size = 36
+outline_size = 8

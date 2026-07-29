@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dfb77g02218u"]
 
-[ext_resource type="Script" uid="uid://dnpcscript" path="res://npc.gd" id="1_npc_script"]
-[ext_resource type="Shader" uid="uid://cykmy3ktcesp4" path="res://eye_shader.gdshader" id="2_eye_shader"]
+[ext_resource type="Script" path="res://Character/npc.gd" id="1_npc_script"]
+[ext_resource type="Shader" path="res://shaders/eye_shader.gdshader" id="2_eye_shader"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_npc"]
 radius = 0.4

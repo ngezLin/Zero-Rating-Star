@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://dhbb68iarv1sk"]
 
-[ext_resource type="Script" uid="uid://vqrwssxfaiee" path="res://player.gd" id="1_4flbx"]
-[ext_resource type="Shader" uid="uid://d0f54en4lksci" path="res://sprint_lines.gdshader" id="2_lines"]
-[ext_resource type="Shader" uid="uid://cykmy3ktcesp4" path="res://eye_shader.gdshader" id="3_eye_shader"]
+[ext_resource type="Script" path="res://Character/player.gd" id="1_4flbx"]
+[ext_resource type="Shader" path="res://shaders/sprint_lines.gdshader" id="2_lines"]
+[ext_resource type="Shader" path="res://shaders/eye_shader.gdshader" id="3_eye_shader"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_sxki6"]
 radius = 0.4

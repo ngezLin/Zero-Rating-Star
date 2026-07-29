@@ -7,6 +7,8 @@
 [ext_resource type="PackedScene" uid="uid://csguf4r3vyhup" path="res://models/Cthapel.glb" id="5_lquwl"]
 [ext_resource type="Script" uid="uid://cwmn2j3ycb8hh" path="res://Character/citrus_3d.gd" id="6_5vw27"]
 [ext_resource type="PackedScene" uid="uid://bx22sbgof7em8" path="res://models/Citruswalk.glb" id="6_7mycd"]
+[ext_resource type="PackedScene" uid="uid://c8receptiondesk" path="res://scenes/reception_desk.tscn" id="7_reception"]
+[ext_resource type="PackedScene" uid="uid://c8npccitrus" path="res://Character/npc_citrus.tscn" id="8_npccitrus"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -27,8 +29,8 @@ size = Vector3(200, 0.5, 200)
 size = Vector3(200, 0.5, 200)
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_5vw27"]
-radius = 0.3071289
-height = 1.8081055
+radius = 0.614
+height = 3.616
 
 [node name="Room1" type="Node3D"]
 
@@ -53,6 +55,12 @@ mesh = SubResource("BoxMesh_m7ri8")
 [node name="Player" parent="." instance=ExtResource("1_ig7tw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.18, 4)
 
+[node name="ReceptionDesk" parent="." instance=ExtResource("7_reception")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 1.8)
+
+[node name="Npc_Citrus" parent="." instance=ExtResource("8_npccitrus")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0.25, 6)
+
 [node name="Box1" parent="." instance=ExtResource("3_box")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0.5)
 
@@ -72,12 +80,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 1.18, -12)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12521565, 1.138367, -3.6098585)
 
 [node name="Citrus3d" type="CharacterBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.81748915, 1.18, -1.3318352)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.81748915, 0.25, -1.3318352)
 script = ExtResource("6_5vw27")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Citrus3d"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.808, 0)
 shape = SubResource("CapsuleShape3D_5vw27")
 
 [node name="Player1" parent="Citrus3d" instance=ExtResource("6_7mycd")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0)
+transform = Transform3D(-2, 0, 0, 0, 2, 0, 0, 0, -2, 0, -0.10, 0)

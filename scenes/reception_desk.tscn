@@ -1,0 +1,104 @@
+[gd_scene format=3 uid="uid://duf3jhlyuyoug"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_desk_col"]
+size = Vector3(2.6, 1.1, 0.9)
+
+[sub_resource type="BoxMesh" id="BoxMesh_body"]
+size = Vector3(2.5, 1.0, 0.8)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wood"]
+albedo_color = Color(0.24, 0.15, 0.09, 1)
+roughness = 0.45
+
+[sub_resource type="BoxMesh" id="BoxMesh_countertop"]
+size = Vector3(2.7, 0.1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_top"]
+albedo_color = Color(0.92, 0.9, 0.85, 1)
+metallic = 0.1
+roughness = 0.2
+
+[sub_resource type="BoxMesh" id="BoxMesh_front_panel"]
+size = Vector3(2.3, 0.7, 0.05)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_panel"]
+albedo_color = Color(0.12, 0.14, 0.18, 1)
+roughness = 0.5
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_bell_base"]
+top_radius = 0.08
+bottom_radius = 0.1
+height = 0.03
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gold"]
+albedo_color = Color(0.95, 0.75, 0.2, 1)
+metallic = 0.95
+roughness = 0.2
+
+[sub_resource type="SphereMesh" id="SphereMesh_bell_dome"]
+radius = 0.075
+height = 0.09
+is_hemisphere = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_monitor"]
+size = Vector3(0.6, 0.4, 0.04)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_screen"]
+albedo_color = Color(0.08, 0.1, 0.15, 1)
+roughness = 0.1
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_stand"]
+top_radius = 0.02
+bottom_radius = 0.08
+height = 0.2
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_metal"]
+albedo_color = Color(0.2, 0.2, 0.25, 1)
+metallic = 0.8
+roughness = 0.3
+
+[node name="ReceptionDesk" type="StaticBody3D"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+shape = SubResource("BoxShape3D_desk_col")
+
+[node name="DeskBody" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("BoxMesh_body")
+surface_material_override/0 = SubResource("StandardMaterial3D_wood")
+
+[node name="CounterTop" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.05, 0)
+mesh = SubResource("BoxMesh_countertop")
+surface_material_override/0 = SubResource("StandardMaterial3D_top")
+
+[node name="FrontPanel" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0.41)
+mesh = SubResource("BoxMesh_front_panel")
+surface_material_override/0 = SubResource("StandardMaterial3D_panel")
+
+[node name="ServiceBell" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.7, 1.1, 0.1)
+
+[node name="BellBase" type="MeshInstance3D" parent="ServiceBell"]
+mesh = SubResource("CylinderMesh_bell_base")
+surface_material_override/0 = SubResource("StandardMaterial3D_gold")
+
+[node name="BellDome" type="MeshInstance3D" parent="ServiceBell"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+mesh = SubResource("SphereMesh_bell_dome")
+surface_material_override/0 = SubResource("StandardMaterial3D_gold")
+
+[node name="Monitor" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 1.1, -0.1)
+
+[node name="Stand" type="MeshInstance3D" parent="Monitor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+mesh = SubResource("CylinderMesh_stand")
+surface_material_override/0 = SubResource("StandardMaterial3D_metal")
+
+[node name="Screen" type="MeshInstance3D" parent="Monitor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+mesh = SubResource("BoxMesh_monitor")
+surface_material_override/0 = SubResource("StandardMaterial3D_screen")

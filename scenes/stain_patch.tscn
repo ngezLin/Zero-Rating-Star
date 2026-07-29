@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c7nak2l4p6q8r"]
 
-[ext_resource type="Script" path="res://stain_patch.gd" id="1_stain"]
+[ext_resource type="Script" path="res://scripts/stain_patch.gd" id="1_stain"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dirt"]
 transparency = 1

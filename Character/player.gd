@@ -490,7 +490,7 @@ func _physics_process(delta: float) -> void:
 	if carried_object == null and interaction_ray.is_colliding():
 		var collider = interaction_ray.get_collider()
 		if collider:
-			if collider.is_in_group("pickable") or collider.is_in_group("bed_task") or collider.is_in_group("stain") or collider.is_in_group("loot"):
+			if collider.is_in_group("pickable") or collider.is_in_group("bed_task") or collider.is_in_group("stain") or collider.is_in_group("loot") or collider.is_in_group("interactable") or collider.has_method("interact"):
 				can_interact = true
 				ray_target = collider
 				current_hovered_mesh = collider.get_node_or_null("MeshInstance3D")
@@ -543,6 +543,17 @@ func _physics_process(delta: float) -> void:
 						wallet_label.text = "💰 Cash: $%d" % wallet_cash
 						prompt_label.text = "Stolen Loot! +$%d" % amount
 						prompt_label.visible = true
+			elif ray_target.has_method("interact"):
+				if ray_target.has_method("get_interaction_prompt"):
+					var prompt = ray_target.get_interaction_prompt()
+					if prompt != "":
+						prompt_label.text = prompt
+						prompt_label.visible = true
+				else:
+					prompt_label.text = "Press [E] to Interact"
+					prompt_label.visible = true
+				if Input.is_action_just_pressed("interact"):
+					ray_target.interact(self)
 			elif ray_target.is_in_group("pickable"):
 				prompt_label.text = "Press [E] to Pick Up Trash"
 				prompt_label.visible = true
