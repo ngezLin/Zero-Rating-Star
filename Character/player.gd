@@ -15,7 +15,7 @@ const BOB_AMP = 0.08
 var t_bob = 0.0
 
 @onready var collision_shape: CollisionShape3D = $CollisionShape3D
-@onready var body_mesh: MeshInstance3D = $BodyMesh
+@onready var body_mesh: Node3D = $BodyMesh
 @onready var head: Node3D = $Head
 @onready var spring_arm: SpringArm3D = $Head/SpringArm3D
 @onready var camera: Camera3D = $Head/SpringArm3D/Camera3D
@@ -670,10 +670,18 @@ func _physics_process(delta: float) -> void:
 					anim_lib.remove_animation("Armature|Armature")
 			
 			var walk_anim = "Armature|preset_biped_walk"
-			var anim_to_play = walk_anim if anim_player.has_animation(walk_anim) else ""
-			if anim_to_play == "" and anim_player.get_animation_list().size() > 0:
-				anim_to_play = anim_player.get_animation_list()[0]
-
+			var idle_anim = "Armature|preset_biped_wait"
+			
+			var horizontal_speed = Vector2(velocity.x, velocity.z).length()
+			var anim_to_play = ""
+			
+			if horizontal_speed > 0.3 and is_on_floor():
+				if anim_player.has_animation(walk_anim):
+					anim_to_play = walk_anim
+			else:
+				if anim_player.has_animation(idle_anim):
+					anim_to_play = idle_anim
+			
 			if anim_to_play != "":
 				var anim = anim_player.get_animation(anim_to_play)
 				if anim and anim.loop_mode != Animation.LOOP_LINEAR:
@@ -683,13 +691,15 @@ func _physics_process(delta: float) -> void:
 						anim.loop_mode = Animation.LOOP_LINEAR
 						anim_lib.add_animation(anim_to_play, anim)
 
-				var speed = Vector2(velocity.x, velocity.z).length()
-				if speed > 0.3 and is_on_floor():
-					if anim_player.current_animation != anim_to_play or not anim_player.is_playing():
-						anim_player.play(anim_to_play)
-					anim_player.speed_scale = clamp(speed / 6.0, 0.6, 1.8)
+				if anim_player.current_animation != anim_to_play or not anim_player.is_playing():
+					anim_player.play(anim_to_play, 0.25)
+				
+				if anim_to_play == walk_anim:
+					anim_player.speed_scale = clamp(horizontal_speed / 6.0, 0.6, 1.8)
 				else:
-					if anim_player.is_playing():
-						anim_player.stop()
+					anim_player.speed_scale = 1.0
+			else:
+				if anim_player.is_playing():
+					anim_player.stop()
 
 	move_and_slide()
