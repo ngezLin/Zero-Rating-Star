@@ -151,5 +151,5 @@ func _play_anim(anim_name: String, speed_scale: float = 1.0) -> void:
 	if not anim_player.has_animation(anim_name):
 		return
 	if anim_player.current_animation != anim_name:
-		anim_player.play(anim_name)
+		anim_player.play(anim_name, 0.25)
 	anim_player.speed_scale = speed_scale

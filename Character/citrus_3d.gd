@@ -123,5 +123,5 @@ func _play_anim(anim_name: String, speed_scale: float = 1.0) -> void:
 		return
 	# Only call play() if we're switching to a different animation
 	if anim_player.current_animation != anim_name:
-		anim_player.play(anim_name)
+		anim_player.play(anim_name, 0.25)
 	anim_player.speed_scale = speed_scale
