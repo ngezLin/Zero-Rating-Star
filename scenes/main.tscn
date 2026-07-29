@@ -6,7 +6,6 @@
 [ext_resource type="Script" path="res://Character/wanderer.gd" id="6_5vw27"]
 [ext_resource type="PackedScene" uid="uid://dkps6kr4y7b0x" path="res://models/Citruswalk.glb" id="7_272bh"]
 [ext_resource type="PackedScene" uid="uid://duf3jhlyuyoug" path="res://scenes/reception_desk.tscn" id="8_reception"]
-[ext_resource type="PackedScene" uid="uid://mmu3uy152lgq" path="res://Character/guest.tscn" id="9_npccitrus"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -54,7 +53,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.18, 4)
 [node name="ReceptionDesk" parent="." unique_id=5000001 instance=ExtResource("8_reception")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 1.8)
 
-[node name="Guest" parent="." unique_id=6000001 instance=ExtResource("9_npccitrus")]
+[node name="Guest" parent="." unique_id=6000001]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.0381145, 1.7471071, 5.4417653)
 visible = false
 
