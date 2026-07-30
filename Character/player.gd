@@ -43,7 +43,6 @@ var t_bob = 0.0
 @onready var default_body_mesh_height: float = 1.8 # Standard capsule mesh height
 
 var was_on_floor = true
-var squash_stretch_y = 1.0
 var zoom_level = 0.0
 var is_aiming = false
 var trajectory_dots = []
@@ -78,7 +77,8 @@ func _ready() -> void:
 	# Set interaction raycast range to 4.5 meters for easy cleaning/interacting
 	interaction_ray.target_position = Vector3(0, 0, -4.5)
 	
-	# Dynamically map WASD, Shift, Ctrl, C, V, and 1-6 keys to actions
+	_add_key_to_action("jump", KEY_SPACE)
+	_add_key_to_action("ui_accept", KEY_SPACE)
 	_add_key_to_action("ui_left", KEY_A)
 	_add_key_to_action("ui_right", KEY_D)
 	_add_key_to_action("ui_up", KEY_W)
@@ -125,6 +125,9 @@ func _ready() -> void:
 		dot.visible = false
 		get_parent().call_deferred("add_child", dot)
 		trajectory_dots.append(dot)
+		
+	# Fix any mesh gaps/tears on 3D Citrus character model by enabling double-sided materials
+	_fix_citrus_model_mesh_gaps(body_mesh)
 		
 	call_deferred("_connect_room_manager")
 
@@ -225,26 +228,19 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity += (get_gravity() * GRAVITY_MULTIPLIER) * delta
 
-	# Landing squash detection
-	if is_on_floor() and not was_on_floor:
-		squash_stretch_y = 0.65  # Squash down
 	was_on_floor = is_on_floor()
 
-	# Handle jump.
-	if Input.is_action_just_pressed("ui_accept") and is_on_floor():
+	# Handle jump (SPACE key).
+	if (Input.is_action_just_pressed("jump") or Input.is_action_just_pressed("ui_accept")) and is_on_floor():
 		velocity.y = JUMP_VELOCITY
-		squash_stretch_y = 1.35  # Stretch up
 
 	# Determine crouching and sneaking states
 	var is_crouching = Input.is_action_pressed("crouch") and is_on_floor()
 	var is_sneaking = Input.is_action_pressed("sneak") and is_on_floor() and not is_crouching
 
-	# Smoothly return body mesh to its default scale (squash & stretch + crouch scaling)
-	squash_stretch_y = lerp(squash_stretch_y, 1.0, delta * 8.0)
+	# Keep body mesh scale stable (crouch scale if crouching)
 	var target_crouch_scale = 0.65 if is_crouching else 1.0
-	body_mesh.scale.y = squash_stretch_y * target_crouch_scale
-	body_mesh.scale.x = (1.0 / sqrt(squash_stretch_y)) * (1.0 / sqrt(target_crouch_scale))
-	body_mesh.scale.z = (1.0 / sqrt(squash_stretch_y)) * (1.0 / sqrt(target_crouch_scale))
+	body_mesh.scale = Vector3(1.0, target_crouch_scale, 1.0)
 
 	# Lower head position when crouching
 	var target_head_y = default_head_pos.y * 0.55 if is_crouching else default_head_pos.y
@@ -669,13 +665,46 @@ func _physics_process(delta: float) -> void:
 				if anim_lib and anim_lib.has_animation("Armature|Armature"):
 					anim_lib.remove_animation("Armature|Armature")
 			
+			# Automatically import jump animations from res://Citrus.fbx if available
+			if not anim_player.has_meta("fbx_imported"):
+				anim_player.set_meta("fbx_imported", true)
+				var fbx_path = "res://Citrus.fbx"
+				if ResourceLoader.exists(fbx_path):
+					var fbx_scene = load(fbx_path).instantiate()
+					if fbx_scene:
+						var fbx_ap = fbx_scene.find_child("AnimationPlayer", true, false) as AnimationPlayer
+						if fbx_ap:
+							var default_lib = anim_player.get_animation_library("")
+							if not default_lib:
+								default_lib = AnimationLibrary.new()
+								anim_player.add_animation_library("", default_lib)
+							for anim_name in fbx_ap.get_animation_list():
+								if anim_name == "RESET":
+									continue
+								var fbx_anim = fbx_ap.get_animation(anim_name)
+								if fbx_anim:
+									default_lib.add_animation("fbx_jump", fbx_anim.duplicate())
+									default_lib.add_animation(anim_name, fbx_anim.duplicate())
+						fbx_scene.queue_free()
+			
 			var walk_anim = "Armature|preset_biped_walk"
 			var idle_anim = "Armature|preset_biped_wait"
+			var jump_anim = ""
+			
+			for anim_name in anim_player.get_animation_list():
+				if "jump" in anim_name.to_lower() or anim_name == "fbx_jump":
+					jump_anim = anim_name
+					break
 			
 			var horizontal_speed = Vector2(velocity.x, velocity.z).length()
 			var anim_to_play = ""
 			
-			if horizontal_speed > 0.3 and is_on_floor():
+			if not is_on_floor():
+				if jump_anim != "":
+					anim_to_play = jump_anim
+				elif anim_player.has_animation(walk_anim):
+					anim_to_play = walk_anim
+			elif horizontal_speed > 0.3:
 				if anim_player.has_animation(walk_anim):
 					anim_to_play = walk_anim
 			else:
@@ -684,7 +713,7 @@ func _physics_process(delta: float) -> void:
 			
 			if anim_to_play != "":
 				var anim = anim_player.get_animation(anim_to_play)
-				if anim and anim.loop_mode != Animation.LOOP_LINEAR:
+				if anim and anim_to_play != jump_anim and anim.loop_mode != Animation.LOOP_LINEAR:
 					var anim_lib = anim_player.get_animation_library("")
 					if anim_lib:
 						anim = anim.duplicate()
@@ -692,7 +721,7 @@ func _physics_process(delta: float) -> void:
 						anim_lib.add_animation(anim_to_play, anim)
 
 				if anim_player.current_animation != anim_to_play or not anim_player.is_playing():
-					anim_player.play(anim_to_play, 0.25)
+					anim_player.play(anim_to_play, 0.15 if anim_to_play == jump_anim else 0.25)
 				
 				if anim_to_play == walk_anim:
 					anim_player.speed_scale = clamp(horizontal_speed / 6.0, 0.6, 1.8)
@@ -703,3 +732,26 @@ func _physics_process(delta: float) -> void:
 					anim_player.stop()
 
 	move_and_slide()
+
+func _fix_citrus_model_mesh_gaps(node: Node) -> void:
+	if not node:
+		return
+	for child in node.get_children():
+		if child is MeshInstance3D:
+			for surface_idx in range(child.get_surface_override_material_count()):
+				var mat = child.get_surface_override_material(surface_idx)
+				if not mat and child.mesh:
+					mat = child.mesh.surface_get_material(surface_idx)
+				if mat and mat is StandardMaterial3D:
+					var dup_mat = mat.duplicate() as StandardMaterial3D
+					dup_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+					child.set_surface_override_material(surface_idx, dup_mat)
+			if child.mesh:
+				for i in range(child.mesh.get_surface_count()):
+					if not child.get_surface_override_material(i):
+						var orig_mat = child.mesh.surface_get_material(i)
+						if orig_mat and orig_mat is StandardMaterial3D:
+							var dup_mat = orig_mat.duplicate() as StandardMaterial3D
+							dup_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+							child.set_surface_override_material(i, dup_mat)
+		_fix_citrus_model_mesh_gaps(child)
