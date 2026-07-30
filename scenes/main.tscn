@@ -53,10 +53,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.18, 4)
 [node name="ReceptionDesk" parent="." unique_id=5000001 instance=ExtResource("8_reception")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 1.8)
 
-[node name="Guest" parent="." unique_id=6000001]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.0381145, 1.7471071, 5.4417653)
-visible = false
-
 [node name="Box1" parent="." unique_id=3000001 instance=ExtResource("3_box")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.7417364, 1.5, 0.5)
 
