@@ -4,9 +4,9 @@
 [ext_resource type="PackedScene" uid="uid://c8n1h2j4l7p0x" path="res://scenes/hotel_layout.tscn" id="2_hotel"]
 [ext_resource type="PackedScene" uid="uid://cb5lwq82218u" path="res://scenes/pickup_box.tscn" id="3_box"]
 [ext_resource type="PackedScene" uid="uid://dfb77g02218u" path="res://Character/npc.tscn" id="4_npc"]
-[ext_resource type="PackedScene" uid="uid://csguf4r3vyhup" path="res://models/Cthapel.glb" id="5_lquwl"]
+[ext_resource type="PackedScene" uid="uid://csguf4r3vyhup" path="res://models/environment/Cthapel.glb" id="5_lquwl"]
 [ext_resource type="Script" uid="uid://cwmn2j3ycb8hh" path="res://Character/citrus_3d.gd" id="6_5vw27"]
-[ext_resource type="PackedScene" uid="uid://bx22sbgof7em8" path="res://models/Citruswalk.glb" id="6_7mycd"]
+[ext_resource type="PackedScene" uid="uid://bx22sbgof7em8" path="res://models/characters/Citruswalk.glb" id="6_7mycd"]
 [ext_resource type="PackedScene" uid="uid://c8receptiondesk" path="res://scenes/reception_desk.tscn" id="7_reception"]
 [ext_resource type="PackedScene" uid="uid://c8npccitrus" path="res://Character/npc_citrus.tscn" id="8_npccitrus"]
 

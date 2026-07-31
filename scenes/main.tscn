@@ -2,10 +2,11 @@
 
 [ext_resource type="PackedScene" uid="uid://dhbb68iarv1sk" path="res://Character/player.tscn" id="1_ig7tw"]
 [ext_resource type="PackedScene" uid="uid://cb5lwq82218u" path="res://scenes/pickup_box.tscn" id="3_box"]
-[ext_resource type="PackedScene" uid="uid://cau3majdgq2tb" path="res://models/Cthapel.glb" id="5_lquwl"]
+[ext_resource type="PackedScene" uid="uid://cau3majdgq2tb" path="res://models/environment/Cthapel.glb" id="5_lquwl"]
 [ext_resource type="Script" path="res://Character/wanderer.gd" id="6_5vw27"]
-[ext_resource type="PackedScene" uid="uid://dkps6kr4y7b0x" path="res://models/Citruswalk.glb" id="7_272bh"]
+[ext_resource type="PackedScene" uid="uid://dkps6kr4y7b0x" path="res://models/characters/Citruswalk.glb" id="7_272bh"]
 [ext_resource type="PackedScene" uid="uid://duf3jhlyuyoug" path="res://scenes/reception_desk.tscn" id="8_reception"]
+[ext_resource type="PackedScene" uid="uid://dlobby_room_scene" path="res://scenes/lobby_room.tscn" id="9_lobby_room"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -46,6 +47,9 @@ shape = SubResource("BoxShape3D_sxki6")
 [node name="MeshInstance3D" type="MeshInstance3D" parent="StaticBody3D" unique_id=1155551397]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.01170969, -0.08743715, 0.015180588)
 mesh = SubResource("BoxMesh_m7ri8")
+
+[node name="LobbyRoom" parent="." unique_id=7000001 instance=ExtResource("9_lobby_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
 
 [node name="Player" parent="." unique_id=1024966981 instance=ExtResource("1_ig7tw")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.18, 4)

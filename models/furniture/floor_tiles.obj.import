@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://e7qg6w43m34u"
+path="res://.godot/imported/floor_tiles.obj-5df8a4e0ff6f5a1ff15c337237fa106f.mesh"
+
+[deps]
+
+files=["res://.godot/imported/floor_tiles.obj-5df8a4e0ff6f5a1ff15c337237fa106f.mesh"]
+
+source_file="res://models/furniture/floor_tiles.obj"
+dest_files=["res://.godot/imported/floor_tiles.obj-5df8a4e0ff6f5a1ff15c337237fa106f.mesh", "res://.godot/imported/floor_tiles.obj-5df8a4e0ff6f5a1ff15c337237fa106f.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

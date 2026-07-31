@@ -38,6 +38,10 @@ var t_bob = 0.0
 @onready var wallet_label: Label = $InteractionPromptLayer/WalletLabel
 @onready var mop_tool: Node3D = $BodyMesh/RightShoulder/RightHand/MopTool
 @onready var hotbar_container: HBoxContainer = $InteractionPromptLayer/HotbarPanel/HBoxContainer
+@onready var alert_banner: Control = get_node_or_null("InteractionPromptLayer/AlertBanner")
+@onready var alert_label: Label = get_node_or_null("InteractionPromptLayer/AlertBanner/AlertLabel")
+
+var alert_tween: Tween = null
 
 @onready var default_capsule_height: float = collision_shape.shape.height
 @onready var default_body_mesh_height: float = 1.8 # Standard capsule mesh height
@@ -76,6 +80,7 @@ func _ready() -> void:
 	
 	# Set interaction raycast range to 4.5 meters for easy cleaning/interacting
 	interaction_ray.target_position = Vector3(0, 0, -4.5)
+	interaction_ray.collision_mask = 0xFFFFFFFF
 	
 	_add_key_to_action("jump", KEY_SPACE)
 	_add_key_to_action("ui_accept", KEY_SPACE)
@@ -144,6 +149,20 @@ func _on_room_tasks_updated(remaining: int) -> void:
 
 func _on_room_ready() -> void:
 	checklist_label.text = "🏨 Room 101: READY FOR CHECK-IN ✅"
+
+func show_alert(message: String, duration: float = 3.5) -> void:
+	if alert_banner and alert_label:
+		alert_label.text = message
+		alert_banner.visible = true
+		alert_banner.modulate.a = 1.0
+		
+		if alert_tween and alert_tween.is_running():
+			alert_tween.kill()
+			
+		alert_tween = create_tween()
+		alert_tween.tween_interval(duration)
+		alert_tween.tween_property(alert_banner, "modulate:a", 0.0, 0.5)
+		alert_tween.tween_callback(func(): alert_banner.visible = false)
 
 func _add_key_to_action(action: String, keycode: Key) -> void:
 	if not InputMap.has_action(action):
@@ -668,7 +687,7 @@ func _physics_process(delta: float) -> void:
 			# Automatically import jump animations from res://Citrus.fbx if available
 			if not anim_player.has_meta("fbx_imported"):
 				anim_player.set_meta("fbx_imported", true)
-				var fbx_path = "res://Citrus.fbx"
+				var fbx_path = "res://models/characters/Citrus.fbx"
 				if ResourceLoader.exists(fbx_path):
 					var fbx_scene = load(fbx_path).instantiate()
 					if fbx_scene:

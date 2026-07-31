@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://vqrwssxfaiee" path="res://Character/player.gd" id="1_4flbx"]
 [ext_resource type="Shader" uid="uid://d0f54en4lksci" path="res://shaders/sprint_lines.gdshader" id="2_lines"]
 [ext_resource type="Shader" uid="uid://cykmy3ktcesp4" path="res://shaders/eye_shader.gdshader" id="3_eye_shader"]
-[ext_resource type="PackedScene" uid="uid://dkps6kr4y7b0x" path="res://models/Citruswalk.glb" id="4_citrus_model"]
+[ext_resource type="PackedScene" uid="uid://dkps6kr4y7b0x" path="res://models/characters/Citruswalk.glb" id="4_citrus_model"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_sxki6"]
 radius = 0.4
@@ -276,6 +276,22 @@ offset_bottom = 80.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "Press [E] to Pick Up"
+horizontal_alignment = 1
+[node name="AlertBanner" type="PanelContainer" parent="InteractionPromptLayer" unique_id=987654321]
+visible = false
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -250.0
+offset_top = 80.0
+offset_right = 250.0
+offset_bottom = 130.0
+grow_horizontal = 2
+mouse_filter = 2
+
+[node name="AlertLabel" type="Label" parent="InteractionPromptLayer/AlertBanner" unique_id=987654322]
+layout_mode = 2
+text = "🚪 Door Has Been Opened! You can leave the room."
 horizontal_alignment = 1
 vertical_alignment = 1
 
