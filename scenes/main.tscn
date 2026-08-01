@@ -43,6 +43,7 @@ environment = SubResource("Environment_h2yge")
 transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 35.004734, 0)
 shadow_enabled = true
 
+
 [node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=308933120]
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D" unique_id=937546994]
@@ -59,10 +60,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 26)
 
 [node name="Players" type="Node3D" parent="." unique_id=1024966981]
-
-[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
-_spawnable_scenes = PackedStringArray("res://Character/player.tscn")
-spawn_path = NodePath("../Players")
 
 [node name="ReceptionDesk" parent="." unique_id=5000001 instance=ExtResource("8_reception")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 1.8)

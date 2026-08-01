@@ -66,7 +66,7 @@ func _on_connection_succeeded() -> void:
 	get_tree().change_scene_to_file("res://scenes/lobby_menu.tscn")
 
 func _on_connection_failed() -> void:
-	status_label.text = "Connection failed! Check 6-Digit Lobby Code or IP address."
+	status_label.text = "Connection failed! For internet play, ensure Host has UPnP / Port 7777 open, or use ZeroTier/Tailscale."
 	host_button.disabled = false
 	join_button.disabled = false
 

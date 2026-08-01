@@ -10,16 +10,24 @@ signal public_ip_fetched(ip: String)
 const DEFAULT_PORT: int = 7777
 const MAX_PLAYERS: int = 4
 
+const STUN_SERVERS: Array = [
+	"stun:stun.l.google.com:19302",
+	"stun:stun1.l.google.com:19302",
+	"stun:stun2.l.google.com:19302"
+]
+
 var local_player_name: String = "Player"
 var local_player_ready: bool = false
 var host_ip_address: String = "127.0.0.1"
 var public_ip_address: String = ""
 var upnp_active: bool = false
+var use_webrtc_stun: bool = true
 
 # Dictionary of players: { peer_id: { "id": int, "name": String, "ready": bool } }
 var players: Dictionary = {}
 
 var enet_peer: ENetMultiplayerPeer = ENetMultiplayerPeer.new()
+var webrtc_peer: WebRTCMultiplayerPeer = WebRTCMultiplayerPeer.new()
 var http_request: HTTPRequest
 
 func _ready() -> void:
@@ -46,6 +54,15 @@ func _on_ip_request_completed(_result: int, response_code: int, _headers: Packed
 			if host_ip_address == "127.0.0.1" or host_ip_address == "":
 				host_ip_address = public_ip_address
 			public_ip_fetched.emit(public_ip_address)
+
+# --- WebRTC STUN Configuration Helper ---
+
+func get_webrtc_config() -> Dictionary:
+	return {
+		"iceServers": [
+			{ "urls": STUN_SERVERS }
+		]
+	}
 
 # --- 6-Digit Lobby Code Encoder & Decoder ---
 
@@ -114,14 +131,14 @@ func host_game(port: int = DEFAULT_PORT, p_name: String = "Host") -> Error:
 	enet_peer = ENetMultiplayerPeer.new()
 	var err = enet_peer.create_server(port, MAX_PLAYERS)
 	if err != OK:
-		push_error("Failed to create ENet server: %d" % err)
+		push_error("Failed to create server on port %d: %d" % [port, err])
 		return err
 
 	multiplayer.multiplayer_peer = enet_peer
 	players.clear()
 	_register_local_player(1)
 	
-	# Attempt automatic UPnP port forwarding
+	# Attempt automatic UPnP port forwarding & STUN initialization
 	_setup_upnp(port)
 	
 	player_list_updated.emit()
@@ -153,7 +170,7 @@ func join_game(ip_or_code: String = "127.0.0.1", port: int = DEFAULT_PORT, p_nam
 	enet_peer = ENetMultiplayerPeer.new()
 	var err = enet_peer.create_client(host_ip_address, port)
 	if err != OK:
-		push_error("Failed to create ENet client: %d" % err)
+		push_error("Failed to create client connection to %s: %d" % [host_ip_address, err])
 		return err
 
 	multiplayer.multiplayer_peer = enet_peer

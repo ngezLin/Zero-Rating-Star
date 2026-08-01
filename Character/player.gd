@@ -70,26 +70,59 @@ var current_camera_mode = CameraMode.THIRD_PERSON
 var vertical_look = 0.0
 
 func _enter_tree() -> void:
-	if name.is_valid_int():
-		set_multiplayer_authority(name.to_int())
+	# Node name is set to str(peer_id) by main.gd _spawn_player
+	var n = str(name)
+	if n.is_valid_int():
+		set_multiplayer_authority(n.to_int())
+		print("[Player] _enter_tree: name=", n, " authority set to ", n.to_int())
 
 func _ready() -> void:
-	if name.is_valid_int():
-		set_multiplayer_authority(name.to_int())
+	var n = str(name)
+	if n.is_valid_int():
+		set_multiplayer_authority(n.to_int())
+
+	print("[Player] _ready: name=", name, " authority=", get_multiplayer_authority(), " my_peer=", multiplayer.get_unique_id(), " is_authority=", is_multiplayer_authority())
 
 	if is_multiplayer_authority():
-		if camera:
-			camera.make_current()
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		# Use a short timer to guarantee the camera activates after the tree is stable
+		var timer = get_tree().create_timer(0.1)
+		timer.timeout.connect(_activate_my_camera)
 	else:
 		if camera:
-			camera.clear_current()
+			camera.current = false
 		var ui = get_node_or_null("InteractionPromptLayer")
 		if ui:
 			ui.visible = false
 		var sprint_ui = get_node_or_null("SprintLinesLayer")
 		if sprint_ui:
 			sprint_ui.visible = false
+
+# --- RPC Position/Rotation Sync ---
+@rpc("any_peer", "call_remote", "unreliable")
+func _sync_state(pos: Vector3, rot: Vector3, head_rot: Vector3, anim_name: String, anim_speed: float) -> void:
+	# Applied on non-authority peers to update this player's visual position
+	global_position = pos
+	rotation = rot
+	if head:
+		head.rotation = head_rot
+	# Play the synced animation on the remote player's model
+	var cm = body_mesh.get_node_or_null("CitrusModel") if body_mesh else null
+	if cm:
+		var ap = cm.find_child("AnimationPlayer", true, false) as AnimationPlayer
+		if ap:
+			if anim_name != "" and (ap.current_animation != anim_name or not ap.is_playing()):
+				if ap.has_animation(anim_name):
+					ap.play(anim_name, 0.25)
+					ap.speed_scale = anim_speed
+			elif anim_name == "" and ap.is_playing():
+				ap.stop()
+
+func _activate_my_camera() -> void:
+	if camera:
+		camera.current = true
+		camera.make_current()
+		print("[Player] Camera ACTIVATED for peer: ", multiplayer.get_unique_id())
 
 	# Exclude the player's own collision body from the interaction raycast query
 	interaction_ray.add_exception(self)
@@ -284,6 +317,9 @@ func _select_slot(index: int) -> void:
 func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority():
 		return
+
+	if camera and not camera.current:
+		camera.make_current()
 
 	# Handle Right Stick camera look for controllers (PlayStation DualShock/DualSense)
 	var rs_x = Input.get_joy_axis(0, JOY_AXIS_RIGHT_X)
@@ -756,6 +792,18 @@ func _physics_process(delta: float) -> void:
 					anim_player.stop()
 
 	move_and_slide()
+	
+	# Broadcast our position/rotation + animation to all other peers
+	if multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		var cur_anim = ""
+		var cur_speed = 1.0
+		var cm = body_mesh.get_node_or_null("CitrusModel") if body_mesh else null
+		if cm:
+			var ap = cm.find_child("AnimationPlayer", true, false) as AnimationPlayer
+			if ap and ap.is_playing():
+				cur_anim = ap.current_animation
+				cur_speed = ap.speed_scale
+		rpc("_sync_state", global_position, rotation, head.rotation, cur_anim, cur_speed)
 
 func _fix_citrus_model_mesh_gaps(node: Node) -> void:
 	if not node:
