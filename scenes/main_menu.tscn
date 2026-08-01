@@ -1,0 +1,147 @@
+[gd_scene load_steps=2 format=3 uid="uid://main_menu_scene_01"]
+
+[ext_resource type="Script" path="res://scripts/main_menu.gd" id="1_menu_script"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu_script")
+
+[node name="ColorRect" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.08, 0.09, 0.12, 1)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 60
+theme_override_constants/margin_top = 40
+theme_override_constants/margin_right = 60
+theme_override_constants/margin_bottom = 40
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "ZERO-STAR RATING"
+horizontal_alignment = 1
+
+[node name="SubtitleLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 18
+text = "Underpaid Hotel Staff Survival & High-Stakes Looting"
+horizontal_alignment = 1
+
+[node name="MyIPLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.9, 0.5, 1)
+theme_override_font_sizes/font_size = 15
+text = "Fetching your Public IP..."
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 15)
+layout_mode = 2
+
+[node name="FormContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 12
+
+[node name="NameHBox" type="HBoxContainer" parent="MarginContainer/VBoxContainer/FormContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/FormContainer/NameHBox"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Player Name:"
+
+[node name="PlayerNameInput" type="LineEdit" parent="MarginContainer/VBoxContainer/FormContainer/NameHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Staff_01"
+placeholder_text = "Enter your name..."
+
+[node name="IPHBox" type="HBoxContainer" parent="MarginContainer/VBoxContainer/FormContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/FormContainer/IPHBox"]
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 2
+text = "Lobby Code:"
+
+[node name="IPInput" type="LineEdit" parent="MarginContainer/VBoxContainer/FormContainer/IPHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = ""
+placeholder_text = "Enter 6-Digit Lobby Code (e.g. 8K3M2P)"
+
+[node name="ButtonsHBox" type="HBoxContainer" parent="MarginContainer/VBoxContainer/FormContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="HostButton" type="Button" parent="MarginContainer/VBoxContainer/FormContainer/ButtonsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 45)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "Host Shift"
+
+[node name="JoinButton" type="Button" parent="MarginContainer/VBoxContainer/FormContainer/ButtonsHBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 45)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "Join Shift"
+
+[node name="FullscreenCheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/FormContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+button_pressed = true
+text = "Fullscreen Mode (F11 to toggle)"
+
+[node name="QuitButton" type="Button" parent="MarginContainer/VBoxContainer/FormContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.4, 0.4, 1)
+text = "Quit Game"
+
+[node name="StatusLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+horizontal_alignment = 1
+
+[node name="NetworkTipLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 13
+text = "💡 Playing over the Internet? Host uses automatic UPnP.
+If router blocks UPnP, use free Playit.gg, Tailscale, or forward UDP Port 7777."
+horizontal_alignment = 1

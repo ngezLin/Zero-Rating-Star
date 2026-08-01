@@ -310,23 +310,8 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(1, 1, 1, 0.6)
 
-[node name="TaskProgressBar" type="ProgressBar" parent="InteractionPromptLayer" unique_id=2345681]
-visible = false
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -100.0
-offset_top = 15.0
-offset_right = 100.0
-offset_bottom = 25.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-show_percentage = false
-
 [node name="ChecklistLabel" type="Label" parent="InteractionPromptLayer" unique_id=2345682]
+visible = false
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 320.0
@@ -346,6 +331,7 @@ text = "💰 Cash: $0"
 horizontal_alignment = 2
 
 [node name="HotbarPanel" type="PanelContainer" parent="InteractionPromptLayer" unique_id=2345684]
+visible = false
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
@@ -404,3 +390,93 @@ layout_mode = 2
 text = "[6] Empty"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="PauseMenu" type="Control" parent="InteractionPromptLayer" unique_id=987654321]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="InteractionPromptLayer/PauseMenu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.05, 0.08, 0.75)
+
+[node name="CenterContainer" type="CenterContainer" parent="InteractionPromptLayer/PauseMenu"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PanelContainer" type="PanelContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer"]
+custom_minimum_size = Vector2(360, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 25
+theme_override_constants/margin_top = 25
+theme_override_constants/margin_right = 25
+theme_override_constants/margin_bottom = 25
+
+[node name="VBoxContainer" type="VBoxContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="TitleLabel" type="Label" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "GAME PAUSED"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ResumeButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 45)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Resume Shift"
+
+[node name="FullscreenButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Toggle Fullscreen (F11)"
+
+[node name="InviteButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Invite Friends (Copy Lobby Code)"
+
+[node name="MainMenuButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Exit to Main Menu"
+
+[node name="QuitButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.4, 0.4, 1)
+text = "Quit Game"
+
+[node name="PauseStatusLabel" type="Label" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+autowrap_mode = 2

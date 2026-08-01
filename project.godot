@@ -11,16 +11,19 @@ config_version=5
 [application]
 
 config/name="Zero Star Rating"
-run/main_scene="res://scenes/main.tscn"
+run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
 Audio="*res://scripts/audio.gd"
+NetworkManager="*res://scripts/network_manager.gd"
+GameManager="*res://scripts/game_manager.gd"
 
 [display]
 
+window/size/mode=3
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 

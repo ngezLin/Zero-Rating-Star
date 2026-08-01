@@ -1,0 +1,20 @@
+[gd_scene load_steps=5 format=3 uid="uid://wanderernpc1001"]
+
+[ext_resource type="Script" path="res://Character/wanderer.gd" id="1_wanderer_script"]
+[ext_resource type="PackedScene" uid="uid://dkps6kr4y7b0x" path="res://models/characters/Citruswalk.glb" id="2_citrus_mesh"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1"]
+radius = 0.5
+height = 2.4
+
+[node name="Wanderer" type="CharacterBody3D" groups=["interactable", "npc"]]
+collision_layer = 1
+collision_mask = 1
+script = ExtResource("1_wanderer_script")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+shape = SubResource("CapsuleShape3D_1")
+
+[node name="Citruswalk" parent="." instance=ExtResource("2_citrus_mesh")]
+transform = Transform3D(1.5, 0, 0, 0, 1.5, 0, 0, 0, 1.5, 0, 0, 0)

@@ -33,13 +33,13 @@ var t_bob = 0.0
 @onready var carry_pivot: Node3D = $CarryPivot
 @onready var prompt_label: Label = $InteractionPromptLayer/PromptLabel
 @onready var dot_crosshair: ColorRect = $InteractionPromptLayer/DotCrosshair
-@onready var task_progress_bar: ProgressBar = $InteractionPromptLayer/TaskProgressBar
 @onready var checklist_label: Label = $InteractionPromptLayer/ChecklistLabel
 @onready var wallet_label: Label = $InteractionPromptLayer/WalletLabel
 @onready var mop_tool: Node3D = $BodyMesh/RightShoulder/RightHand/MopTool
 @onready var hotbar_container: HBoxContainer = $InteractionPromptLayer/HotbarPanel/HBoxContainer
 @onready var alert_banner: Control = get_node_or_null("InteractionPromptLayer/AlertBanner")
 @onready var alert_label: Label = get_node_or_null("InteractionPromptLayer/AlertBanner/AlertLabel")
+@onready var pause_menu: Control = get_node_or_null("InteractionPromptLayer/PauseMenu")
 
 var alert_tween: Tween = null
 
@@ -53,8 +53,6 @@ var trajectory_dots = []
 var wallet_cash: int = 0
 var active_slot_index: int = 0
 
-var is_tasking = false
-var task_progress = 0.0
 var highlight_material: StandardMaterial3D
 var hovered_mesh: MeshInstance3D = null
 
@@ -71,10 +69,28 @@ enum CameraMode { THIRD_PERSON, FIRST_PERSON, FRONT_VIEW }
 var current_camera_mode = CameraMode.THIRD_PERSON
 var vertical_look = 0.0
 
+func _enter_tree() -> void:
+	if name.is_valid_int():
+		set_multiplayer_authority(name.to_int())
+
 func _ready() -> void:
-	# Captures the mouse cursor inside the game window for looking around
-	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
-	
+	if name.is_valid_int():
+		set_multiplayer_authority(name.to_int())
+
+	if is_multiplayer_authority():
+		if camera:
+			camera.make_current()
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	else:
+		if camera:
+			camera.clear_current()
+		var ui = get_node_or_null("InteractionPromptLayer")
+		if ui:
+			ui.visible = false
+		var sprint_ui = get_node_or_null("SprintLinesLayer")
+		if sprint_ui:
+			sprint_ui.visible = false
+
 	# Exclude the player's own collision body from the interaction raycast query
 	interaction_ray.add_exception(self)
 	
@@ -94,7 +110,6 @@ func _ready() -> void:
 	_add_key_to_action("toggle_perspective", KEY_V)
 	_add_key_to_action("interact", KEY_E)
 	_add_key_to_action("toggle_flashlight", KEY_F)
-	_add_key_to_action("task", KEY_R)
 	
 	_add_key_to_action("slot_1", KEY_1)
 	_add_key_to_action("slot_2", KEY_2)
@@ -106,6 +121,18 @@ func _ready() -> void:
 	_add_mouse_to_action("zoom_in", MOUSE_BUTTON_WHEEL_UP)
 	_add_mouse_to_action("zoom_out", MOUSE_BUTTON_WHEEL_DOWN)
 	_add_mouse_to_action("throw", MOUSE_BUTTON_LEFT)
+	
+	# PlayStation Controller Joypad Mappings
+	_add_joy_button_to_action("jump", JOY_BUTTON_A) # Cross (X)
+	_add_joy_button_to_action("ui_accept", JOY_BUTTON_A) # Cross (X)
+	_add_joy_button_to_action("interact", JOY_BUTTON_X) # Square (□) for doors/interactions!
+	_add_joy_button_to_action("toggle_perspective", JOY_BUTTON_LEFT_SHOULDER) # L1 for FPS/TPS toggle!
+	_add_joy_axis_to_action("crouch", JOY_AXIS_TRIGGER_LEFT, 0.5) # L2 Trigger for crouching!
+	_add_joy_button_to_action("crouch", JOY_BUTTON_B) # Circle (O)
+	_add_joy_button_to_action("ui_cancel", JOY_BUTTON_START) # Options Button
+	_add_joy_button_to_action("toggle_flashlight", JOY_BUTTON_Y) # Triangle (Δ)
+	_add_joy_button_to_action("sprint", JOY_BUTTON_LEFT_STICK) # L3 Click
+	_add_joy_button_to_action("throw", JOY_BUTTON_RIGHT_SHOULDER) # R1
 	
 	# Initialize highlight material
 	highlight_material = StandardMaterial3D.new()
@@ -131,24 +158,14 @@ func _ready() -> void:
 		get_parent().call_deferred("add_child", dot)
 		trajectory_dots.append(dot)
 		
-	# Fix any mesh gaps/tears on 3D Citrus character model by enabling double-sided materials
-	_fix_citrus_model_mesh_gaps(body_mesh)
+	# Hide checklist and inventory hotbar panel by default
+	if checklist_label:
+		checklist_label.visible = false
+	var hotbar_panel = get_node_or_null("InteractionPromptLayer/HotbarPanel")
+	if hotbar_panel:
+		hotbar_panel.visible = false
 		
-	call_deferred("_connect_room_manager")
-
-func _connect_room_manager() -> void:
-	var rm = get_parent().find_child("RoomManager*", true, false)
-	if rm:
-		if rm.has_signal("tasks_updated"):
-			rm.tasks_updated.connect(_on_room_tasks_updated)
-		if rm.has_signal("room_ready"):
-			rm.room_ready.connect(_on_room_ready)
-
-func _on_room_tasks_updated(remaining: int) -> void:
-	checklist_label.text = "🏨 Room 101: %d Tasks Remaining" % remaining
-
-func _on_room_ready() -> void:
-	checklist_label.text = "🏨 Room 101: READY FOR CHECK-IN ✅"
+	_setup_pause_menu()
 
 func show_alert(message: String, duration: float = 3.5) -> void:
 	if alert_banner and alert_label:
@@ -167,8 +184,9 @@ func show_alert(message: String, duration: float = 3.5) -> void:
 func _add_key_to_action(action: String, keycode: Key) -> void:
 	if not InputMap.has_action(action):
 		InputMap.add_action(action)
-	else:
-		InputMap.action_erase_events(action)
+	for event in InputMap.action_get_events(action):
+		if event is InputEventKey and event.physical_keycode == keycode:
+			return
 	var new_event = InputEventKey.new()
 	new_event.physical_keycode = keycode
 	InputMap.action_add_event(action, new_event)
@@ -183,19 +201,40 @@ func _add_mouse_to_action(action: String, button: MouseButton) -> void:
 	new_event.button_index = button
 	InputMap.action_add_event(action, new_event)
 
+func _add_joy_button_to_action(action: String, button: JoyButton) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action)
+	for event in InputMap.action_get_events(action):
+		if event is InputEventJoypadButton and event.button_index == button:
+			return
+	var new_event = InputEventJoypadButton.new()
+	new_event.button_index = button
+	InputMap.action_add_event(action, new_event)
+
+func _add_joy_axis_to_action(action: String, axis: JoyAxis, axis_value: float = 1.0) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action)
+	for event in InputMap.action_get_events(action):
+		if event is InputEventJoypadMotion and event.axis == axis:
+			return
+	var new_event = InputEventJoypadMotion.new()
+	new_event.axis = axis
+	new_event.axis_value = axis_value
+	InputMap.action_add_event(action, new_event)
+
 func _unhandled_input(event: InputEvent) -> void:
+	if not is_multiplayer_authority():
+		return
+		
 	# Handle mouse look movement
 	if event is InputEventMouseMotion:
 		rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
 		vertical_look -= event.relative.y * MOUSE_SENSITIVITY
 		vertical_look = clamp(vertical_look, deg_to_rad(-89), deg_to_rad(89))
 		
-	# Press Escape to release/recapture the mouse cursor easily while testing
+	# Press Escape to open Pause & Settings Menu
 	if event.is_action_pressed("ui_cancel"):
-		if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
-			Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-		else:
-			Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		toggle_pause_menu()
 			
 	# Toggle perspective (TPS, FPS, Front View) when pressing V
 	if event.is_action_pressed("toggle_perspective"):
@@ -243,6 +282,21 @@ func _select_slot(index: int) -> void:
 		mop_tool.visible = (active_slot_index == 1)
 
 func _physics_process(delta: float) -> void:
+	if not is_multiplayer_authority():
+		return
+
+	# Handle Right Stick camera look for controllers (PlayStation DualShock/DualSense)
+	var rs_x = Input.get_joy_axis(0, JOY_AXIS_RIGHT_X)
+	var rs_y = Input.get_joy_axis(0, JOY_AXIS_RIGHT_Y)
+	const JOY_DEADZONE = 0.15
+	const JOY_LOOK_SPEED = 2.8
+	if abs(rs_x) > JOY_DEADZONE or abs(rs_y) > JOY_DEADZONE:
+		var look_x = rs_x if abs(rs_x) > JOY_DEADZONE else 0.0
+		var look_y = rs_y if abs(rs_y) > JOY_DEADZONE else 0.0
+		rotate_y(-look_x * JOY_LOOK_SPEED * delta)
+		vertical_look -= look_y * JOY_LOOK_SPEED * delta
+		vertical_look = clamp(vertical_look, deg_to_rad(-89), deg_to_rad(89))
+
 	# Add the snappy gravity.
 	if not is_on_floor():
 		velocity += (get_gravity() * GRAVITY_MULTIPLIER) * delta
@@ -253,8 +307,8 @@ func _physics_process(delta: float) -> void:
 	if (Input.is_action_just_pressed("jump") or Input.is_action_just_pressed("ui_accept")) and is_on_floor():
 		velocity.y = JUMP_VELOCITY
 
-	# Determine crouching and sneaking states
-	var is_crouching = Input.is_action_pressed("crouch") and is_on_floor()
+	# Determine crouching and sneaking states (supports L2 trigger axis, Circle button, and C key)
+	var is_crouching = (Input.is_action_pressed("crouch") or Input.get_joy_axis(0, JOY_AXIS_TRIGGER_LEFT) > 0.3) and is_on_floor()
 	var is_sneaking = Input.is_action_pressed("sneak") and is_on_floor() and not is_crouching
 
 	# Keep body mesh scale stable (crouch scale if crouching)
@@ -272,11 +326,9 @@ func _physics_process(delta: float) -> void:
 	var input_dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	
-	# Determine speed based on sneak, crouch, carrying, or tasking states
+	# Determine speed based on sneak, crouch, or carrying states
 	var current_speed = WALK_SPEED
-	if is_tasking:
-		current_speed = 0.0
-	elif carried_object != null:
+	if carried_object != null:
 		current_speed = 5.0 # Slow down due to item weight
 		if is_crouching:
 			current_speed = 2.0
@@ -288,7 +340,7 @@ func _physics_process(delta: float) -> void:
 		elif is_sneaking:
 			current_speed = SNEAK_SPEED
 	
-	if direction and not is_tasking:
+	if direction:
 		velocity.x = direction.x * current_speed
 		velocity.z = direction.z * current_speed
 	else:
@@ -334,20 +386,7 @@ func _physics_process(delta: float) -> void:
 
 	# --- Hand & Foot Sway Animations ---
 	# 1. Arm/Shoulder Pose/Swing Animation
-	if is_tasking:
-		# --- SWEEPING/FIXING TASK GESTURE ---
-		var t_task = (Time.get_ticks_msec() / 1000.0) * 8.0
-		var sway_x = sin(t_task) * 0.3
-		var sway_y = cos(t_task) * 0.4
-		
-		left_shoulder.rotation.x = lerp_angle(left_shoulder.rotation.x, 1.0 + sway_x, delta * 12.0)
-		left_shoulder.rotation.y = lerp_angle(left_shoulder.rotation.y, -0.3 + sway_y, delta * 12.0)
-		left_shoulder.rotation.z = lerp_angle(left_shoulder.rotation.z, -0.2, delta * 12.0)
-		
-		right_shoulder.rotation.x = lerp_angle(right_shoulder.rotation.x, 1.0 - sway_x, delta * 12.0)
-		right_shoulder.rotation.y = lerp_angle(right_shoulder.rotation.y, 0.3 - sway_y, delta * 12.0)
-		right_shoulder.rotation.z = lerp_angle(right_shoulder.rotation.z, 0.2, delta * 12.0)
-	elif carried_object != null:
+	if carried_object != null:
 		if is_aiming:
 			# --- AIMING TO THROW POSE ---
 			# Point both arms straight forward to aim the throw
@@ -473,9 +512,9 @@ func _physics_process(delta: float) -> void:
 			target_spring_length = 2.5
 			target_spring_yaw = PI
 			
-	spring_arm.spring_length = lerp(spring_arm.spring_length, target_spring_length, delta * 10.0)
-	spring_arm.rotation.y = lerp_angle(spring_arm.rotation.y, target_spring_yaw, delta * 8.0)
-	head.rotation.x = lerp(head.rotation.x, target_head_pitch, delta * 15.0)
+	spring_arm.spring_length = lerp(spring_arm.spring_length, target_spring_length, delta * 15.0)
+	spring_arm.rotation.y = target_spring_yaw
+	head.rotation.x = target_head_pitch
 	
 	# Dynamically show/hide the 3D Citrus character model depending on perspective
 	var citrus_model = body_mesh.get_node_or_null("CitrusModel")
@@ -505,7 +544,7 @@ func _physics_process(delta: float) -> void:
 	if carried_object == null and interaction_ray.is_colliding():
 		var collider = interaction_ray.get_collider()
 		if collider:
-			if collider.is_in_group("pickable") or collider.is_in_group("bed_task") or collider.is_in_group("stain") or collider.is_in_group("loot") or collider.is_in_group("interactable") or collider.has_method("interact"):
+			if collider.is_in_group("pickable") or collider.is_in_group("loot") or collider.is_in_group("interactable") or collider.has_method("interact"):
 				can_interact = true
 				ray_target = collider
 				current_hovered_mesh = collider.get_node_or_null("MeshInstance3D")
@@ -528,28 +567,12 @@ func _physics_process(delta: float) -> void:
 		dot_crosshair.scale = Vector2(1.0, 1.0)
 		dot_crosshair.pivot_offset = Vector2(3, 3)
 
-	# --- Pickup, Task & Loot Interaction System ---
+	# --- Pickup & Loot Interaction System ---
 	if carried_object == null:
 		prompt_label.visible = false
 		if can_interact and ray_target:
-			if ray_target.is_in_group("bed_task") and not ray_target.is_tidied:
-				prompt_label.text = "Press [E] or Hold [R] to Tidy Bed"
-				prompt_label.visible = true
-				if Input.is_action_pressed("task") or Input.is_action_pressed("interact"):
-					is_tasking = true
-					ray_target.tidy(delta * 0.75)
-					task_progress_bar.value = ray_target.tidy_progress * 100.0
-					task_progress_bar.visible = true
-			elif ray_target.is_in_group("stain"):
-				prompt_label.text = "Press [E] or Hold [R] to Wipe Stain"
-				prompt_label.visible = true
-				if Input.is_action_pressed("task") or Input.is_action_pressed("interact"):
-					is_tasking = true
-					ray_target.clean(delta * 0.75)
-					task_progress_bar.value = ray_target.clean_progress * 100.0
-					task_progress_bar.visible = true
-			elif ray_target.is_in_group("loot"):
-				prompt_label.text = "Press [E] to Steal Valuables ($150)"
+			if ray_target.is_in_group("loot"):
+				prompt_label.text = "Press [E] or [Square] to Steal Valuables ($150)"
 				prompt_label.visible = true
 				if Input.is_action_just_pressed("interact"):
 					var amount = ray_target.collect_loot()
@@ -569,6 +592,8 @@ func _physics_process(delta: float) -> void:
 					prompt_label.visible = true
 				if Input.is_action_just_pressed("interact"):
 					ray_target.interact(self)
+				elif Input.is_action_just_pressed("crouch") and ray_target.has_method("deny_current_guest"):
+					ray_target.deny_current_guest(self)
 			elif ray_target.is_in_group("pickable"):
 				prompt_label.text = "Press [E] to Pick Up Trash"
 				prompt_label.visible = true
@@ -653,26 +678,6 @@ func _physics_process(delta: float) -> void:
 		is_aiming = false
 		for dot in trajectory_dots:
 			dot.visible = false
-
-	# --- Interactive Tasking System (Hold R) ---
-	if Input.is_action_pressed("task") and carried_object == null:
-		is_tasking = true
-		task_progress = min(task_progress + delta * 33.3, 100.0) # 3 seconds to complete
-		task_progress_bar.value = task_progress
-		task_progress_bar.visible = true
-		
-		prompt_label.text = "Task in Progress... %d%%" % int(task_progress)
-		prompt_label.visible = true
-		
-		if task_progress >= 100.0:
-			prompt_label.text = "Task Completed!"
-			prompt_label.visible = true
-	else:
-		if is_tasking:
-			task_progress_bar.visible = false
-			prompt_label.visible = false
-			is_tasking = false
-			task_progress = 0.0
 
 	# --- Update 3D Citrus Model Animations ---
 	citrus_model = body_mesh.get_node_or_null("CitrusModel")
@@ -774,3 +779,49 @@ func _fix_citrus_model_mesh_gaps(node: Node) -> void:
 							dup_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 							child.set_surface_override_material(i, dup_mat)
 		_fix_citrus_model_mesh_gaps(child)
+
+func _setup_pause_menu() -> void:
+	if not pause_menu:
+		return
+	pause_menu.visible = false
+	var resume_btn = pause_menu.get_node_or_null("%ResumeButton")
+	var fullscreen_btn = pause_menu.get_node_or_null("%FullscreenButton")
+	var invite_btn = pause_menu.get_node_or_null("%InviteButton")
+	var menu_btn = pause_menu.get_node_or_null("%MainMenuButton")
+	var quit_btn = pause_menu.get_node_or_null("%QuitButton")
+	
+	if resume_btn:
+		resume_btn.pressed.connect(toggle_pause_menu)
+	if fullscreen_btn:
+		fullscreen_btn.pressed.connect(func(): GameManager.toggle_fullscreen())
+	if invite_btn:
+		invite_btn.pressed.connect(_on_invite_friends_pressed)
+	if menu_btn:
+		menu_btn.pressed.connect(_on_exit_to_main_menu_pressed)
+	if quit_btn:
+		quit_btn.pressed.connect(func(): get_tree().quit())
+
+func toggle_pause_menu() -> void:
+	if not pause_menu:
+		return
+	pause_menu.visible = not pause_menu.visible
+	if pause_menu.visible:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+		var status_lbl = pause_menu.get_node_or_null("%PauseStatusLabel")
+		if status_lbl:
+			var code = NetworkManager.get_lobby_code()
+			status_lbl.text = "Lobby Code: " + code
+	else:
+		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+
+func _on_invite_friends_pressed() -> void:
+	var code = NetworkManager.get_lobby_code()
+	var invite_info = "Join my Zero-Star Rating shift! Lobby Code: " + code
+	DisplayServer.clipboard_set(code)
+	var status_lbl = pause_menu.get_node_or_null("%PauseStatusLabel")
+	if status_lbl:
+		status_lbl.text = "Copied 6-Digit Lobby Code to clipboard:\n" + code
+
+func _on_exit_to_main_menu_pressed() -> void:
+	NetworkManager.disconnect_game()
+	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")

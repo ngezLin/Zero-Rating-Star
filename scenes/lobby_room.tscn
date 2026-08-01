@@ -40,22 +40,6 @@ size = Vector3(2, 1, 0.3)
 [sub_resource type="BoxMesh" id="BoxMesh_door_lintel"]
 size = Vector3(2, 1, 0.3)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_table_top"]
-size = Vector3(2.4, 0.1, 1.4)
-
-[sub_resource type="BoxMesh" id="BoxMesh_table_top"]
-size = Vector3(2.4, 0.1, 1.4)
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_table_wood"]
-albedo_color = Color(0.55, 0.35, 0.18, 1)
-roughness = 0.4
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_table_leg"]
-size = Vector3(0.12, 0.85, 0.12)
-
-[sub_resource type="BoxMesh" id="BoxMesh_table_leg"]
-size = Vector3(0.12, 0.85, 0.12)
-
 [node name="LobbyRoom" type="Node3D" unique_id=981273981]
 
 [node name="Floor" type="StaticBody3D" parent="." unique_id=10001]
@@ -129,51 +113,6 @@ mesh = SubResource("BoxMesh_door_lintel")
 surface_material_override/0 = SubResource("StandardMaterial3D_wall")
 
 [node name="BasicTable" type="StaticBody3D" parent="." unique_id=10011]
-
-[node name="TableTopCollision" type="CollisionShape3D" parent="BasicTable" unique_id=1149951746]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
-shape = SubResource("BoxShape3D_table_top")
-
-[node name="TableTopMesh" type="MeshInstance3D" parent="BasicTable" unique_id=413554723]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
-mesh = SubResource("BoxMesh_table_top")
-surface_material_override/0 = SubResource("StandardMaterial3D_table_wood")
-
-[node name="Leg1" type="CollisionShape3D" parent="BasicTable" unique_id=234865673]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.05, 0.425, -0.55)
-shape = SubResource("BoxShape3D_table_leg")
-
-[node name="Leg1Mesh" type="MeshInstance3D" parent="BasicTable" unique_id=290832254]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.05, 0.425, -0.55)
-mesh = SubResource("BoxMesh_table_leg")
-surface_material_override/0 = SubResource("StandardMaterial3D_table_wood")
-
-[node name="Leg2" type="CollisionShape3D" parent="BasicTable" unique_id=1146040334]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.05, 0.425, -0.55)
-shape = SubResource("BoxShape3D_table_leg")
-
-[node name="Leg2Mesh" type="MeshInstance3D" parent="BasicTable" unique_id=294584444]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.05, 0.425, -0.55)
-mesh = SubResource("BoxMesh_table_leg")
-surface_material_override/0 = SubResource("StandardMaterial3D_table_wood")
-
-[node name="Leg3" type="CollisionShape3D" parent="BasicTable" unique_id=5727741]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.05, 0.425, 0.55)
-shape = SubResource("BoxShape3D_table_leg")
-
-[node name="Leg3Mesh" type="MeshInstance3D" parent="BasicTable" unique_id=144474688]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.05, 0.425, 0.55)
-mesh = SubResource("BoxMesh_table_leg")
-surface_material_override/0 = SubResource("StandardMaterial3D_table_wood")
-
-[node name="Leg4" type="CollisionShape3D" parent="BasicTable" unique_id=260205467]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.05, 0.425, 0.55)
-shape = SubResource("BoxShape3D_table_leg")
-
-[node name="Leg4Mesh" type="MeshInstance3D" parent="BasicTable" unique_id=1939666219]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.05, 0.425, 0.55)
-mesh = SubResource("BoxMesh_table_leg")
-surface_material_override/0 = SubResource("StandardMaterial3D_table_wood")
 
 [node name="Door" parent="." unique_id=10012 instance=ExtResource("1_door")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6.85)

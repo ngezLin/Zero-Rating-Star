@@ -1,0 +1,38 @@
+[gd_scene format=3 uid="uid://c0flrwlx4pmse"]
+
+[ext_resource type="Script" uid="uid://c65t6wty0im1l" path="res://scripts/harbor_dock.gd" id="1_harbor_script"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_water"]
+albedo_color = Color(0.05, 0.22, 0.38, 0.9)
+metallic = 0.2
+roughness = 0.1
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ocean"]
+material = SubResource("StandardMaterial3D_water")
+size = Vector2(80, 80)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_pier"]
+albedo_color = Color(0.32, 0.25, 0.2, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="BoxMesh_pier"]
+material = SubResource("StandardMaterial3D_pier")
+size = Vector3(12, 1, 24)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pier"]
+size = Vector3(12, 1, 24)
+
+[node name="HarborDock" type="Node3D" unique_id=348708160]
+script = ExtResource("1_harbor_script")
+
+[node name="OceanMesh" type="MeshInstance3D" parent="." unique_id=700102460]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("PlaneMesh_ocean")
+
+[node name="PierMesh" type="MeshInstance3D" parent="." unique_id=184886279]
+mesh = SubResource("BoxMesh_pier")
+
+[node name="PierStaticBody" type="StaticBody3D" parent="PierMesh" unique_id=1876891497]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="PierMesh/PierStaticBody" unique_id=57277780]
+shape = SubResource("BoxShape3D_pier")
