@@ -1,0 +1,110 @@
+[gd_scene format=3 uid="uid://trash_cart_scene1"]
+
+[ext_resource type="Script" path="res://scripts/trash_cart.gd" id="1_trash_cart"]
+
+[sub_resource type="StandardMaterial3D" id="mat_cart_frame"]
+albedo_color = Color(0.2, 0.22, 0.25, 1)
+metallic = 0.7
+roughness = 0.3
+
+[sub_resource type="StandardMaterial3D" id="mat_cart_bag"]
+albedo_color = Color(0.22, 0.35, 0.55, 1)
+roughness = 0.7
+
+[sub_resource type="StandardMaterial3D" id="mat_wheel"]
+albedo_color = Color(0.1, 0.1, 0.1, 1)
+roughness = 0.9
+
+[sub_resource type="BoxMesh" id="mesh_cart_base"]
+size = Vector3(0.9, 0.08, 0.6)
+
+[sub_resource type="BoxShape3D" id="shape_cart"]
+size = Vector3(0.95, 0.65, 0.65)
+
+[sub_resource type="BoxMesh" id="mesh_cart_bag"]
+size = Vector3(0.8, 0.5, 0.5)
+
+[sub_resource type="CylinderMesh" id="mesh_wheel"]
+top_radius = 0.06
+bottom_radius = 0.06
+height = 0.04
+
+[sub_resource type="CylinderMesh" id="mesh_handle_post"]
+top_radius = 0.02
+bottom_radius = 0.02
+height = 0.75
+
+[sub_resource type="CylinderMesh" id="mesh_handle_bar"]
+top_radius = 0.025
+bottom_radius = 0.025
+height = 0.65
+
+[sub_resource type="BoxShape3D" id="shape_deposit_area"]
+size = Vector3(0.85, 0.3, 0.55)
+
+[node name="TrashCart" type="StaticBody3D"]
+script = ExtResource("1_trash_cart")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.325, 0)
+shape = SubResource("shape_cart")
+
+; ====== BASE FRAME ======
+[node name="BaseFrame" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.08, 0)
+mesh = SubResource("mesh_cart_base")
+material_override = SubResource("mat_cart_frame")
+
+; ====== WHEELS ======
+[node name="Wheel1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, -0.38, 0.04, -0.25)
+mesh = SubResource("mesh_wheel")
+material_override = SubResource("mat_wheel")
+
+[node name="Wheel2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.38, 0.04, -0.25)
+mesh = SubResource("mesh_wheel")
+material_override = SubResource("mat_wheel")
+
+[node name="Wheel3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, -0.38, 0.04, 0.25)
+mesh = SubResource("mesh_wheel")
+material_override = SubResource("mat_wheel")
+
+[node name="Wheel4" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0.38, 0.04, 0.25)
+mesh = SubResource("mesh_wheel")
+material_override = SubResource("mat_wheel")
+
+; ====== FABRIC CANVAS BAG BIN ======
+[node name="BagBin" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+mesh = SubResource("mesh_cart_bag")
+material_override = SubResource("mat_cart_bag")
+
+; ====== HANDLE ======
+[node name="HandlePost1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.4, 0.42, -0.28)
+mesh = SubResource("mesh_handle_post")
+material_override = SubResource("mat_cart_frame")
+
+[node name="HandlePost2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 0.42, -0.28)
+mesh = SubResource("mesh_handle_post")
+material_override = SubResource("mat_cart_frame")
+
+[node name="HandleBar" type="MeshInstance3D" parent="."]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0.78, -0.28)
+mesh = SubResource("mesh_handle_bar")
+material_override = SubResource("mat_cart_frame")
+
+; ====== INTERNAL TRASH STORAGE CONTAINER ======
+[node name="TrashContainer" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+
+; ====== DEPOSIT AREA ======
+[node name="DepositArea" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DepositArea"]
+shape = SubResource("shape_deposit_area")

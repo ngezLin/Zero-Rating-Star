@@ -1,160 +1,89 @@
 [gd_scene format=3 uid="uid://cq6ajnxw0wau2"]
 
-[ext_resource type="Script" path="res://scripts/hotel_room.gd" id="1_room_script"]
-[ext_resource type="Script" path="res://scripts/dirty_spot.gd" id="2_dirty_spot"]
-[ext_resource type="Script" path="res://scripts/bed_blanket.gd" id="3_bed_blanket"]
-[ext_resource type="PackedScene" path="res://scenes/trash_bin.tscn" id="4_trash_bin"]
-[ext_resource type="Script" path="res://scripts/trash_item.gd" id="5_trash_item"]
-[ext_resource type="Script" path="res://scripts/tidy_furniture.gd" id="6_tidy_furniture"]
+[ext_resource type="Script" uid="uid://dhwuvgu7oqh0t" path="res://scripts/hotel_room.gd" id="1_room_script"]
+[ext_resource type="Script" uid="uid://d2oww54ctmy2e" path="res://scripts/dirty_spot.gd" id="2_dirty_spot"]
+[ext_resource type="Script" uid="uid://cevxk8utwr2dd" path="res://scripts/bed_blanket.gd" id="3_bed_blanket"]
+[ext_resource type="PackedScene" path="res://scenes/trash_cart.tscn" id="4_trash_cart"]
+[ext_resource type="Script" uid="uid://ucsphrykj7i4" path="res://scripts/trash_item.gd" id="5_trash_item"]
+[ext_resource type="Script" uid="uid://bo80w36j1bt2w" path="res://scripts/tidy_furniture.gd" id="6_tidy_furniture"]
+
+[sub_resource type="BoxShape3D" id="shape_floor"]
+size = Vector3(6.15, 0.2, 5.15)
 
 [sub_resource type="StandardMaterial3D" id="mat_floor"]
 albedo_color = Color(0.35, 0.32, 0.28, 1)
 roughness = 0.6
 
-[sub_resource type="StandardMaterial3D" id="mat_wall"]
-albedo_color = Color(0.88, 0.85, 0.78, 1)
-roughness = 0.75
+[sub_resource type="BoxMesh" id="mesh_floor"]
+size = Vector3(6.15, 0.2, 5.15)
 
 [sub_resource type="StandardMaterial3D" id="mat_ceiling"]
 albedo_color = Color(0.95, 0.95, 0.93, 1)
 roughness = 0.9
 
+[sub_resource type="BoxMesh" id="mesh_ceiling"]
+size = Vector3(6.15, 0.2, 5.15)
+
+[sub_resource type="BoxShape3D" id="shape_wall_back"]
+size = Vector3(6.15, 3, 0.15)
+
+[sub_resource type="StandardMaterial3D" id="mat_wall"]
+albedo_color = Color(0.88, 0.85, 0.78, 1)
+roughness = 0.75
+
+[sub_resource type="BoxMesh" id="mesh_wall_back"]
+size = Vector3(6.15, 3, 0.15)
+
+[sub_resource type="BoxShape3D" id="shape_wall_side"]
+size = Vector3(0.15, 3, 5.15)
+
+[sub_resource type="BoxMesh" id="mesh_wall_side"]
+size = Vector3(0.15, 3, 5.15)
+
+[sub_resource type="BoxShape3D" id="shape_wall_front_left"]
+size = Vector3(2, 3, 0.15)
+
+[sub_resource type="BoxMesh" id="mesh_wall_front_left"]
+size = Vector3(2, 3, 0.15)
+
+[sub_resource type="BoxShape3D" id="shape_wall_front_right"]
+size = Vector3(2.85, 3, 0.15)
+
+[sub_resource type="BoxMesh" id="mesh_wall_front_right"]
+size = Vector3(2.85, 3, 0.15)
+
+[sub_resource type="BoxShape3D" id="shape_lintel"]
+size = Vector3(1.3, 0.8, 0.15)
+
+[sub_resource type="BoxMesh" id="mesh_lintel"]
+size = Vector3(1.3, 0.8, 0.15)
+
+[sub_resource type="BoxShape3D" id="shape_bed"]
+size = Vector3(1.8, 0.35, 2.2)
+
 [sub_resource type="StandardMaterial3D" id="mat_bed_frame"]
 albedo_color = Color(0.35, 0.22, 0.12, 1)
 roughness = 0.5
+
+[sub_resource type="BoxMesh" id="mesh_bed_frame"]
+size = Vector3(1.8, 0.35, 2.2)
 
 [sub_resource type="StandardMaterial3D" id="mat_mattress"]
 albedo_color = Color(0.92, 0.9, 0.85, 1)
 roughness = 0.8
 
+[sub_resource type="BoxMesh" id="mesh_mattress"]
+size = Vector3(1.7, 0.15, 2.1)
+
 [sub_resource type="StandardMaterial3D" id="mat_pillow"]
 albedo_color = Color(0.96, 0.96, 0.94, 1)
 roughness = 0.9
 
-[sub_resource type="StandardMaterial3D" id="mat_desk"]
-albedo_color = Color(0.3, 0.2, 0.1, 1)
-roughness = 0.4
-
-[sub_resource type="StandardMaterial3D" id="mat_wardrobe"]
-albedo_color = Color(0.25, 0.18, 0.1, 1)
-roughness = 0.5
-
-[sub_resource type="StandardMaterial3D" id="mat_lamp_base"]
-albedo_color = Color(0.15, 0.15, 0.15, 1)
-metallic = 0.6
-roughness = 0.3
-
-[sub_resource type="StandardMaterial3D" id="mat_lamp_shade"]
-albedo_color = Color(0.95, 0.9, 0.75, 1)
-roughness = 0.8
-
-[sub_resource type="StandardMaterial3D" id="mat_dirty"]
-albedo_color = Color(0.35, 0.3, 0.15, 1)
-roughness = 1.0
-
-[sub_resource type="StandardMaterial3D" id="mat_chair"]
-albedo_color = Color(0.4, 0.25, 0.15, 1)
-roughness = 0.5
-
-[sub_resource type="StandardMaterial3D" id="mat_nightstand"]
-albedo_color = Color(0.32, 0.22, 0.12, 1)
-roughness = 0.5
-
-[sub_resource type="BoxMesh" id="mesh_floor"]
-size = Vector3(6.15, 0.2, 5.15)
-
-[sub_resource type="BoxShape3D" id="shape_floor"]
-size = Vector3(6.15, 0.2, 5.15)
-
-[sub_resource type="BoxMesh" id="mesh_ceiling"]
-size = Vector3(6.15, 0.2, 5.15)
-
-[sub_resource type="BoxMesh" id="mesh_wall_back"]
-size = Vector3(6.15, 3, 0.15)
-
-[sub_resource type="BoxShape3D" id="shape_wall_back"]
-size = Vector3(6.15, 3, 0.15)
-
-[sub_resource type="BoxMesh" id="mesh_wall_side"]
-size = Vector3(0.15, 3, 5.15)
-
-[sub_resource type="BoxShape3D" id="shape_wall_side"]
-size = Vector3(0.15, 3, 5.15)
-
-[sub_resource type="BoxMesh" id="mesh_wall_front_left"]
-size = Vector3(2, 3, 0.15)
-
-[sub_resource type="BoxShape3D" id="shape_wall_front_left"]
-size = Vector3(2, 3, 0.15)
-
-[sub_resource type="BoxMesh" id="mesh_wall_front_right"]
-size = Vector3(2.85, 3, 0.15)
-
-[sub_resource type="BoxShape3D" id="shape_wall_front_right"]
-size = Vector3(2.85, 3, 0.15)
-
-[sub_resource type="BoxMesh" id="mesh_lintel"]
-size = Vector3(1.3, 0.8, 0.15)
-
-[sub_resource type="BoxShape3D" id="shape_lintel"]
-size = Vector3(1.3, 0.8, 0.15)
-
-[sub_resource type="BoxMesh" id="mesh_bed_frame"]
-size = Vector3(1.8, 0.35, 2.2)
-
-[sub_resource type="BoxShape3D" id="shape_bed"]
-size = Vector3(1.8, 0.35, 2.2)
-
-[sub_resource type="BoxMesh" id="mesh_mattress"]
-size = Vector3(1.7, 0.15, 2.1)
-
 [sub_resource type="BoxMesh" id="mesh_pillow"]
 size = Vector3(0.5, 0.1, 0.35)
 
-[sub_resource type="BoxMesh" id="mesh_desk"]
-size = Vector3(1.2, 0.75, 0.55)
-
-[sub_resource type="BoxShape3D" id="shape_desk"]
-size = Vector3(1.2, 0.75, 0.55)
-
-[sub_resource type="BoxMesh" id="mesh_chair_seat"]
-size = Vector3(0.45, 0.05, 0.45)
-
-[sub_resource type="BoxMesh" id="mesh_chair_back"]
-size = Vector3(0.45, 0.45, 0.05)
-
-[sub_resource type="BoxShape3D" id="shape_chair"]
-size = Vector3(0.45, 0.5, 0.45)
-
-[sub_resource type="BoxMesh" id="mesh_wardrobe"]
-size = Vector3(1, 2, 0.55)
-
-[sub_resource type="BoxShape3D" id="shape_wardrobe"]
-size = Vector3(1, 2, 0.55)
-
-[sub_resource type="BoxMesh" id="mesh_nightstand"]
-size = Vector3(0.45, 0.5, 0.4)
-
-[sub_resource type="BoxShape3D" id="shape_nightstand"]
-size = Vector3(0.45, 0.5, 0.4)
-
-[sub_resource type="CylinderMesh" id="mesh_lamp_base"]
-top_radius = 0.05
-bottom_radius = 0.08
-height = 0.35
-
-[sub_resource type="CylinderMesh" id="mesh_lamp_shade"]
-top_radius = 0.06
-bottom_radius = 0.15
-height = 0.18
-
-[sub_resource type="CylinderMesh" id="mesh_dirty_disc"]
-top_radius = 0.35
-bottom_radius = 0.35
-height = 0.02
-
-[sub_resource type="BoxShape3D" id="shape_dirty"]
-size = Vector3(1.2, 0.5, 1.2)
+[sub_resource type="BoxShape3D" id="shape_blanket"]
+size = Vector3(1.65, 0.35, 1.85)
 
 [sub_resource type="StandardMaterial3D" id="mat_dirty_blanket"]
 albedo_color = Color(0.48, 0.42, 0.35, 1)
@@ -163,8 +92,16 @@ roughness = 0.95
 [sub_resource type="BoxMesh" id="mesh_blanket"]
 size = Vector3(1.65, 0.08, 1.85)
 
-[sub_resource type="BoxShape3D" id="shape_blanket"]
-size = Vector3(1.65, 0.35, 1.85)
+[sub_resource type="ParticleProcessMaterial" id="process_dust"]
+emission_shape = 3
+emission_box_extents = Vector3(0.6, 0.05, 0.6)
+direction = Vector3(0, 1, 0)
+initial_velocity_min = 0.4
+initial_velocity_max = 1.0
+gravity = Vector3(0, 0.15, 0)
+scale_min = 0.5
+scale_max = 1.5
+color = Color(0.85, 0.82, 0.75, 0.45)
 
 [sub_resource type="StandardMaterial3D" id="mat_dust_particle"]
 transparency = 1
@@ -176,17 +113,61 @@ material = SubResource("mat_dust_particle")
 radius = 0.06
 height = 0.12
 
-[sub_resource type="ParticleProcessMaterial" id="process_dust"]
-emission_shape = 3
-emission_box_extents = Vector3(0.6, 0.05, 0.6)
-direction = Vector3(0, 1, 0)
-spread = 45.0
-initial_velocity_min = 0.4
-initial_velocity_max = 1.0
-gravity = Vector3(0, 0.15, 0)
-scale_min = 0.5
-scale_max = 1.5
-color = Color(0.85, 0.82, 0.75, 0.45)
+[sub_resource type="BoxShape3D" id="shape_nightstand"]
+size = Vector3(0.45, 0.5, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="mat_nightstand"]
+albedo_color = Color(0.32, 0.22, 0.12, 1)
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="mesh_nightstand"]
+size = Vector3(0.45, 0.5, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="mat_lamp_base"]
+albedo_color = Color(0.15, 0.15, 0.15, 1)
+metallic = 0.6
+roughness = 0.3
+
+[sub_resource type="CylinderMesh" id="mesh_lamp_base"]
+top_radius = 0.05
+bottom_radius = 0.08
+height = 0.35
+
+[sub_resource type="StandardMaterial3D" id="mat_lamp_shade"]
+albedo_color = Color(0.95, 0.9, 0.75, 1)
+roughness = 0.8
+
+[sub_resource type="CylinderMesh" id="mesh_lamp_shade"]
+top_radius = 0.06
+bottom_radius = 0.15
+height = 0.18
+
+[sub_resource type="BoxShape3D" id="shape_desk"]
+size = Vector3(1.2, 0.75, 0.55)
+
+[sub_resource type="StandardMaterial3D" id="mat_desk"]
+albedo_color = Color(0.3, 0.2, 0.1, 1)
+roughness = 0.4
+
+[sub_resource type="BoxMesh" id="mesh_desk"]
+size = Vector3(1.2, 0.75, 0.55)
+
+[sub_resource type="BoxShape3D" id="shape_chair"]
+size = Vector3(0.45, 0.5, 0.45)
+
+[sub_resource type="StandardMaterial3D" id="mat_chair"]
+albedo_color = Color(0.4, 0.25, 0.15, 1)
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="mesh_chair_seat"]
+size = Vector3(0.45, 0.05, 0.45)
+
+[sub_resource type="BoxMesh" id="mesh_chair_back"]
+size = Vector3(0.45, 0.45, 0.05)
+
+[sub_resource type="CylinderShape3D" id="shape_soda_can"]
+height = 0.19
+radius = 0.07
 
 [sub_resource type="StandardMaterial3D" id="mat_soda_can"]
 albedo_color = Color(0.85, 0.15, 0.15, 1)
@@ -198,9 +179,8 @@ top_radius = 0.06
 bottom_radius = 0.06
 height = 0.18
 
-[sub_resource type="CylinderShape3D" id="shape_soda_can"]
-radius = 0.07
-height = 0.19
+[sub_resource type="SphereShape3D" id="shape_paper_ball"]
+radius = 0.09
 
 [sub_resource type="StandardMaterial3D" id="mat_paper_ball"]
 albedo_color = Color(0.9, 0.9, 0.88, 1)
@@ -210,134 +190,142 @@ roughness = 0.95
 radius = 0.08
 height = 0.16
 
-[sub_resource type="SphereShape3D" id="shape_paper_ball"]
-radius = 0.09
+[sub_resource type="BoxShape3D" id="shape_wardrobe"]
+size = Vector3(1, 2, 0.55)
 
-; ====== ROOT ======
-[node name="HotelRoom" type="Node3D"]
+[sub_resource type="StandardMaterial3D" id="mat_wardrobe"]
+albedo_color = Color(0.25, 0.18, 0.1, 1)
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="mesh_wardrobe"]
+size = Vector3(1, 2, 0.55)
+
+[sub_resource type="BoxShape3D" id="shape_dirty"]
+size = Vector3(1.2, 0.5, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="mat_dirty"]
+albedo_color = Color(0.35, 0.3, 0.15, 1)
+
+[sub_resource type="CylinderMesh" id="mesh_dirty_disc"]
+top_radius = 0.35
+bottom_radius = 0.35
+height = 0.02
+
+[node name="HotelRoom" type="Node3D" unique_id=1898068273]
 script = ExtResource("1_room_script")
 
-; ====== FLOOR ======
-[node name="Floor" type="StaticBody3D" parent="."]
+[node name="Floor" type="StaticBody3D" parent="." unique_id=754058464]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor" unique_id=810104128]
 shape = SubResource("shape_floor")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
-mesh = SubResource("mesh_floor")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor" unique_id=51552870]
 material_override = SubResource("mat_floor")
+mesh = SubResource("mesh_floor")
 
-; ====== CEILING ======
-[node name="Ceiling" type="MeshInstance3D" parent="."]
+[node name="Ceiling" type="MeshInstance3D" parent="." unique_id=1728804098]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.1, 0)
-mesh = SubResource("mesh_ceiling")
 material_override = SubResource("mat_ceiling")
+mesh = SubResource("mesh_ceiling")
 
-; ====== BACK WALL ======
-[node name="WallBack" type="StaticBody3D" parent="."]
+[node name="WallBack" type="StaticBody3D" parent="." unique_id=133000685]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -2.5)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallBack"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallBack" unique_id=1771459691]
 shape = SubResource("shape_wall_back")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallBack"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallBack" unique_id=1772437970]
+material_override = SubResource("mat_wall")
 mesh = SubResource("mesh_wall_back")
-material_override = SubResource("mat_wall")
 
-; ====== LEFT WALL ======
-[node name="WallLeft" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.0, 1.5, 0)
+[node name="WallLeft" type="StaticBody3D" parent="." unique_id=746802552]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 1.5, 0)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallLeft"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallLeft" unique_id=347168686]
 shape = SubResource("shape_wall_side")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallLeft"]
-mesh = SubResource("mesh_wall_side")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallLeft" unique_id=985737788]
 material_override = SubResource("mat_wall")
+mesh = SubResource("mesh_wall_side")
 
-; ====== RIGHT WALL ======
-[node name="WallRight" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.0, 1.5, 0)
+[node name="WallRight" type="StaticBody3D" parent="." unique_id=1668589353]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1.5, 0)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallRight"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallRight" unique_id=1338887106]
 shape = SubResource("shape_wall_side")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallRight"]
-mesh = SubResource("mesh_wall_side")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallRight" unique_id=1791768224]
 material_override = SubResource("mat_wall")
+mesh = SubResource("mesh_wall_side")
 
-; ====== FRONT WALL (with doorway) ======
-[node name="WallFrontLeft" type="StaticBody3D" parent="."]
+[node name="WallFrontLeft" type="StaticBody3D" parent="." unique_id=294848789]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.075, 1.5, 2.5)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallFrontLeft"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallFrontLeft" unique_id=616982955]
 shape = SubResource("shape_wall_front_left")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallFrontLeft"]
-mesh = SubResource("mesh_wall_front_left")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallFrontLeft" unique_id=670028582]
 material_override = SubResource("mat_wall")
+mesh = SubResource("mesh_wall_front_left")
 
-[node name="WallFrontRight" type="StaticBody3D" parent="."]
+[node name="WallFrontRight" type="StaticBody3D" parent="." unique_id=57641548]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.65, 1.5, 2.5)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallFrontRight"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallFrontRight" unique_id=137658366]
 shape = SubResource("shape_wall_front_right")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallFrontRight"]
-mesh = SubResource("mesh_wall_front_right")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallFrontRight" unique_id=80816325]
 material_override = SubResource("mat_wall")
+mesh = SubResource("mesh_wall_front_right")
 
-[node name="WallFrontLintel" type="StaticBody3D" parent="."]
+[node name="WallFrontLintel" type="StaticBody3D" parent="." unique_id=1675774146]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.425, 2.6, 2.5)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="WallFrontLintel"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WallFrontLintel" unique_id=2001691175]
 shape = SubResource("shape_lintel")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="WallFrontLintel"]
-mesh = SubResource("mesh_lintel")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallFrontLintel" unique_id=604778612]
 material_override = SubResource("mat_wall")
+mesh = SubResource("mesh_lintel")
 
-; ====== BED ======
-[node name="Bed" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.25, -1.0)
+[node name="Bed" type="StaticBody3D" parent="." unique_id=380983634]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.25, -1)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Bed"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Bed" unique_id=625685423]
 shape = SubResource("shape_bed")
 
-[node name="Frame" type="MeshInstance3D" parent="Bed"]
-mesh = SubResource("mesh_bed_frame")
+[node name="Frame" type="MeshInstance3D" parent="Bed" unique_id=1772247669]
 material_override = SubResource("mat_bed_frame")
+mesh = SubResource("mesh_bed_frame")
 
-[node name="Mattress" type="MeshInstance3D" parent="Bed"]
+[node name="Mattress" type="MeshInstance3D" parent="Bed" unique_id=1841674525]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, 0)
-mesh = SubResource("mesh_mattress")
 material_override = SubResource("mat_mattress")
+mesh = SubResource("mesh_mattress")
 
-[node name="Pillow1" type="MeshInstance3D" parent="Bed"]
+[node name="Pillow1" type="MeshInstance3D" parent="Bed" unique_id=1182499472]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35, 0.38, -0.8)
-mesh = SubResource("mesh_pillow")
 material_override = SubResource("mat_pillow")
+mesh = SubResource("mesh_pillow")
 
-[node name="Pillow2" type="MeshInstance3D" parent="Bed"]
+[node name="Pillow2" type="MeshInstance3D" parent="Bed" unique_id=249025218]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0.38, -0.8)
-mesh = SubResource("mesh_pillow")
 material_override = SubResource("mat_pillow")
+mesh = SubResource("mesh_pillow")
 
-[node name="DirtyBlanket" type="StaticBody3D" parent="Bed"]
+[node name="DirtyBlanket" type="StaticBody3D" parent="Bed" unique_id=1650202065]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.38, 0.1)
 script = ExtResource("3_bed_blanket")
-spot_name = "Messy Blanket"
-hold_time_required = 5.0
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Bed/DirtyBlanket"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Bed/DirtyBlanket" unique_id=2115837608]
 shape = SubResource("shape_blanket")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Bed/DirtyBlanket"]
-mesh = SubResource("mesh_blanket")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Bed/DirtyBlanket" unique_id=1017794393]
 material_override = SubResource("mat_dirty_blanket")
+mesh = SubResource("mesh_blanket")
 
-[node name="DustParticles" type="GPUParticles3D" parent="Bed/DirtyBlanket"]
+[node name="DustParticles" type="GPUParticles3D" parent="Bed/DirtyBlanket" unique_id=307186409]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
 emitting = false
 amount = 30
@@ -345,138 +333,130 @@ lifetime = 0.8
 process_material = SubResource("process_dust")
 draw_pass_1 = SubResource("mesh_dust")
 
-; ====== NIGHTSTAND ======
-[node name="Nightstand" type="StaticBody3D" parent="."]
+[node name="Nightstand" type="StaticBody3D" parent="." unique_id=1697146093]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.35, 0.25, -2.1)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Nightstand"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Nightstand" unique_id=2067387310]
 shape = SubResource("shape_nightstand")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Nightstand"]
-mesh = SubResource("mesh_nightstand")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Nightstand" unique_id=96527367]
 material_override = SubResource("mat_nightstand")
+mesh = SubResource("mesh_nightstand")
 
-; ====== LAMP (on nightstand) ======
-[node name="LampBase" type="MeshInstance3D" parent="Nightstand"]
+[node name="LampBase" type="MeshInstance3D" parent="Nightstand" unique_id=489304541]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.42, 0)
-mesh = SubResource("mesh_lamp_base")
 material_override = SubResource("mat_lamp_base")
+mesh = SubResource("mesh_lamp_base")
 
-[node name="LampShade" type="MeshInstance3D" parent="Nightstand"]
+[node name="LampShade" type="MeshInstance3D" parent="Nightstand" unique_id=1653257797]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.68, 0)
-mesh = SubResource("mesh_lamp_shade")
 material_override = SubResource("mat_lamp_shade")
+mesh = SubResource("mesh_lamp_shade")
 
-[node name="RoomLight" type="OmniLight3D" parent="Nightstand"]
+[node name="RoomLight" type="OmniLight3D" parent="Nightstand" unique_id=2122165243]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, 0)
-light_color = Color(1.0, 0.92, 0.75, 1)
+light_color = Color(1, 0.92, 0.75, 1)
 light_energy = 2.5
 omni_range = 6.0
 
-; ====== DESK ======
-[node name="Desk" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, 0.45, -2.0)
+[node name="Desk" type="StaticBody3D" parent="." unique_id=1054570693]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.1, 0.45, -2)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Desk"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Desk" unique_id=1123153408]
 shape = SubResource("shape_desk")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Desk"]
-mesh = SubResource("mesh_desk")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Desk" unique_id=1461775168]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.44197655, 0, 0)
 material_override = SubResource("mat_desk")
+mesh = SubResource("mesh_desk")
 
-; ====== CHAIR ======
-[node name="Chair" type="StaticBody3D" parent="."]
-transform = Transform3D(0.2588, -0.9659, 0, 0.9659, 0.2588, 0, 0, 0, 1, 2.0, 0.15, -1.3)
+[node name="Chair" type="StaticBody3D" parent="." unique_id=1170035672]
+transform = Transform3D(0.2588, -0.9659, 0, 0.9659, 0.2588, 0, 0, 0, 1, 2, 0.15, -1.3)
 script = ExtResource("6_tidy_furniture")
 object_name = "Desk Chair"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Chair"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Chair" unique_id=972543883]
 shape = SubResource("shape_chair")
 
-[node name="Seat" type="MeshInstance3D" parent="Chair"]
+[node name="Seat" type="MeshInstance3D" parent="Chair" unique_id=2132206987]
+material_override = SubResource("mat_chair")
 mesh = SubResource("mesh_chair_seat")
-material_override = SubResource("mat_chair")
 
-[node name="Back" type="MeshInstance3D" parent="Chair"]
+[node name="Back" type="MeshInstance3D" parent="Chair" unique_id=225515702]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.25, -0.2)
-mesh = SubResource("mesh_chair_back")
 material_override = SubResource("mat_chair")
+mesh = SubResource("mesh_chair_back")
 
-; ====== TRASH BIN ======
-[node name="TrashBin" parent="." instance=ExtResource("4_trash_bin")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0.0, -2.2)
+; ====== TRASH CART ======
+[node name="TrashCart" parent="." instance=ExtResource("4_trash_cart")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, -2.1)
 
-; ====== SCATTERED TRASH ITEMS ======
-[node name="TrashCan1" type="RigidBody3D" parent="."]
+[node name="TrashCan1" type="RigidBody3D" parent="." unique_id=1414383394]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.15, -0.5)
 script = ExtResource("5_trash_item")
 trash_name = "Empty Soda Can"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="TrashCan1"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TrashCan1" unique_id=848620818]
 shape = SubResource("shape_soda_can")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="TrashCan1"]
-mesh = SubResource("mesh_soda_can")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="TrashCan1" unique_id=116817496]
 material_override = SubResource("mat_soda_can")
+mesh = SubResource("mesh_soda_can")
 
-[node name="TrashPaper2" type="RigidBody3D" parent="."]
+[node name="TrashPaper2" type="RigidBody3D" parent="." unique_id=377670526]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.8, 0.15, 1.2)
 script = ExtResource("5_trash_item")
 trash_name = "Crumpled Paper"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="TrashPaper2"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="TrashPaper2" unique_id=558104951]
 shape = SubResource("shape_paper_ball")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="TrashPaper2"]
-mesh = SubResource("mesh_paper_ball")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="TrashPaper2" unique_id=343721849]
 material_override = SubResource("mat_paper_ball")
+mesh = SubResource("mesh_paper_ball")
 
-; ====== WARDROBE ======
-[node name="Wardrobe" type="StaticBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.2, 1.0, 1.5)
+[node name="Wardrobe" type="StaticBody3D" parent="." unique_id=1187886299]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.2, 1, 1.5)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Wardrobe"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Wardrobe" unique_id=1834750727]
 shape = SubResource("shape_wardrobe")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="Wardrobe"]
-mesh = SubResource("mesh_wardrobe")
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Wardrobe" unique_id=176536405]
 material_override = SubResource("mat_wardrobe")
+mesh = SubResource("mesh_wardrobe")
 
-; ====== DIRTY SPOT 1 ======
-[node name="DirtySpot1" type="StaticBody3D" parent="."]
+[node name="DirtySpot1" type="StaticBody3D" parent="." unique_id=411532038]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 0.1, 0.5)
 script = ExtResource("2_dirty_spot")
 spot_name = "Floor Stain"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="DirtySpot1"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DirtySpot1" unique_id=1939085161]
 shape = SubResource("shape_dirty")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="DirtySpot1"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="DirtySpot1" unique_id=411520248]
 material_override = SubResource("mat_dirty")
 mesh = SubResource("mesh_dirty_disc")
 
-; ====== DIRTY SPOT 2 ======
-[node name="DirtySpot2" type="StaticBody3D" parent="."]
+[node name="DirtySpot2" type="StaticBody3D" parent="." unique_id=1832172524]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0.1, -0.8)
 script = ExtResource("2_dirty_spot")
 spot_name = "Spilled Coffee"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="DirtySpot2"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DirtySpot2" unique_id=504826041]
 shape = SubResource("shape_dirty")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="DirtySpot2"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="DirtySpot2" unique_id=1244909830]
 material_override = SubResource("mat_dirty")
 mesh = SubResource("mesh_dirty_disc")
 
-; ====== DIRTY SPOT 3 ======
-[node name="DirtySpot3" type="StaticBody3D" parent="."]
+[node name="DirtySpot3" type="StaticBody3D" parent="." unique_id=404511243]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.1, 1.8)
 script = ExtResource("2_dirty_spot")
 spot_name = "Muddy Footprints"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="DirtySpot3"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DirtySpot3" unique_id=641474242]
 shape = SubResource("shape_dirty")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="DirtySpot3"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="DirtySpot3" unique_id=1115094695]
 material_override = SubResource("mat_dirty")
 mesh = SubResource("mesh_dirty_disc")
