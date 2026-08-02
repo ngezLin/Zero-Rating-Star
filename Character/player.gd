@@ -829,20 +829,8 @@ func _physics_process(delta: float) -> void:
 										continue
 									var anim_obj = fbx_ap.get_animation(anim_name)
 									if anim_obj:
-										var anim_dup = anim_obj.duplicate()
-										# Apply -90° X pitch correction to root bone rotation keyframes to align Mixamo FBX with GLB skeleton
-										var fix_quat = Quaternion(Vector3(1, 0, 0), deg_to_rad(-90))
-										for track_idx in range(anim_dup.get_track_count()):
-											if anim_dup.track_get_type(track_idx) == Animation.TYPE_ROTATION_3D:
-												var track_path = str(anim_dup.track_get_path(track_idx))
-												if "Hips" in track_path or "Root" in track_path or track_idx == 0:
-													for key_i in range(anim_dup.track_get_key_count(track_idx)):
-														var orig_quat = anim_dup.track_get_key_value(track_idx, key_i)
-														if orig_quat is Quaternion:
-															anim_dup.track_set_key_value(track_idx, key_i, fix_quat * orig_quat)
-
-										default_lib.add_animation(key, anim_dup)
-										print("[Player] Imported and aligned crouch animation '", key, "' from ", file_path)
+										default_lib.add_animation(key, anim_obj.duplicate())
+										print("[Player] Imported crouch animation '", key, "' from ", file_path)
 										break
 							scene_inst.queue_free()
 
