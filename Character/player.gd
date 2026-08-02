@@ -262,8 +262,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not is_multiplayer_authority():
 		return
 		
-	# Handle mouse look movement
-	if event is InputEventMouseMotion:
+	# Handle mouse look movement (disabled while pushing cart — cart A/D steer drives camera)
+	if event is InputEventMouseMotion and not is_pushing_cart:
 		rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
 		vertical_look -= event.relative.y * MOUSE_SENSITIVITY
 		vertical_look = clamp(vertical_look, deg_to_rad(-89), deg_to_rad(89))

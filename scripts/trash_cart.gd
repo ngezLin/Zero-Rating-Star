@@ -111,7 +111,7 @@ func _physics_process(delta: float) -> void:
 		var forward = Input.get_action_strength("move_forward") - Input.get_action_strength("move_back")
 		var steer   = Input.get_action_strength("move_right")   - Input.get_action_strength("move_left")
 
-		# A/D rotates (steers) the cart
+		# A/D rotates (steers) the cart — and syncs player so camera follows
 		if abs(steer) > 0.05:
 			rotation.y -= steer * turn_speed * delta
 
@@ -122,9 +122,10 @@ func _physics_process(delta: float) -> void:
 
 		move_and_slide()
 
-		# Keep player locked to push handle at the back
+		# Keep player locked to push handle at the back, facing same direction as cart
 		var handle_pos = global_transform * Vector3(0, 0, 0.95)
 		pushing_player.global_position = Vector3(handle_pos.x, pushing_player.global_position.y, handle_pos.z)
+		pushing_player.rotation.y = rotation.y  # Camera follows cart heading
 
 		# Broadcast to peers in multiplayer
 		if multiplayer.has_multiplayer_peer():
