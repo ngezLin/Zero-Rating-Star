@@ -126,7 +126,7 @@ func _physics_process(delta: float) -> void:
 		move_and_slide()
 
 		# Position player right behind cart push handle facing forward
-		var handle_pos = global_transform * Vector3(0, 0, -0.9)
+		var handle_pos = global_transform * Vector3(0, 0, 0.95)
 		pushing_player.global_position = Vector3(handle_pos.x, pushing_player.global_position.y, handle_pos.z)
 		pushing_player.rotation.y = rotation.y
 
