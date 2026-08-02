@@ -575,7 +575,7 @@ func _physics_process(delta: float) -> void:
 	head.rotation.x = target_head_pitch
 	
 	# Dynamically show/hide the 3D Citrus character model depending on perspective
-	var citrus_model = body_mesh.get_node_or_null("CitrusModel")
+	citrus_model = body_mesh.get_node_or_null("CitrusModel")
 	if current_camera_mode == CameraMode.FIRST_PERSON:
 		camera.cull_mask = 1048573 # Hide layer 2 (eyes) to prevent clipping
 		if citrus_model:
