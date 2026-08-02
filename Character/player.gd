@@ -834,24 +834,27 @@ func _physics_process(delta: float) -> void:
 						if scene_inst:
 							var fbx_ap = scene_inst.find_child("AnimationPlayer", true, false) as AnimationPlayer
 							if fbx_ap:
+								# Print target skeleton bone names
+								var target_skel = citrus_model.find_child("Skeleton3D", true, false) as Skeleton3D
+								if target_skel:
+									var skel_bones = []
+									for b_idx in range(target_skel.get_bone_count()):
+										skel_bones.append(target_skel.get_bone_name(b_idx))
+									print("[DIAGNOSTIC] CitrusModel Skeleton Bones: ", skel_bones)
+
 								for anim_name in fbx_ap.get_animation_list():
 									if anim_name == "RESET":
 										continue
 									var anim_obj = fbx_ap.get_animation(anim_name)
 									if anim_obj:
 										var anim_dup = anim_obj.duplicate()
-										
-										# Re-map track path prefixes to match CitrusModel skeleton path
-										if sample_prefix != "":
-											for track_idx in range(anim_dup.get_track_count()):
-												var orig_p = str(anim_dup.track_get_path(track_idx))
-												if ":" in orig_p:
-													var bone_part = orig_p.split(":")[1]
-													var new_p = NodePath(sample_prefix + bone_part)
-													anim_dup.track_set_path(track_idx, new_p)
+										var fbx_tracks = []
+										for t_i in range(anim_dup.get_track_count()):
+											fbx_tracks.append(str(anim_dup.track_get_path(t_i)))
+										print("[DIAGNOSTIC] FBX Tracks for '", key, "': ", fbx_tracks)
 
 										default_lib.add_animation(key, anim_dup)
-										print("[Player] Imported and re-mapped crouch animation '", key, "' from ", file_path)
+										print("[Player] Imported crouch animation '", key, "' from ", file_path)
 										break
 							scene_inst.queue_free()
 
