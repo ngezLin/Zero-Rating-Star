@@ -389,7 +389,7 @@ mesh = SubResource("mesh_chair_back")
 
 ; ====== TRASH CART ======
 [node name="TrashCart" parent="." instance=ExtResource("4_trash_cart")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, -2.1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.8, 0, 3.6)
 
 [node name="TrashCan1" type="RigidBody3D" parent="." unique_id=1414383394]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.15, -0.5)
