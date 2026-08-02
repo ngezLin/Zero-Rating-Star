@@ -108,33 +108,32 @@ func _physics_process(delta: float) -> void:
 		velocity.y -= 9.8 * delta
 
 	if is_being_pushed and is_instance_valid(pushing_player):
-		# Only process local driving inputs if this client is the authority for the pushing player
-		if pushing_player.is_multiplayer_authority():
-			var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+		var forward = Input.get_action_strength("move_forward") - Input.get_action_strength("move_back")
+		var strafe  = Input.get_action_strength("move_right")  - Input.get_action_strength("move_left")
 
-			if input_dir.length() > 0.05:
-				# Calculate movement direction relative to player's camera facing
-				var move_dir = (pushing_player.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
-				velocity.x = move_dir.x * drive_speed
-				velocity.z = move_dir.z * drive_speed
+		if abs(forward) > 0.05 or abs(strafe) > 0.05:
+			# Move relative to player's current facing direction
+			var cam_basis = pushing_player.transform.basis
+			var move_dir = (cam_basis.z * -forward + cam_basis.x * strafe).normalized()
+			velocity.x = move_dir.x * drive_speed
+			velocity.z = move_dir.z * drive_speed
 
-				# Smoothly rotate cart to face movement direction
-				var target_angle = atan2(-move_dir.x, -move_dir.z)
-				rotation.y = lerp_angle(rotation.y, target_angle, delta * turn_speed)
-			else:
-				velocity.x = move_toward(velocity.x, 0, drive_speed * delta * 5.0)
-				velocity.z = move_toward(velocity.z, 0, drive_speed * delta * 5.0)
+			# Smoothly rotate cart to face movement direction
+			var target_angle = atan2(move_dir.x, move_dir.z)
+			rotation.y = lerp_angle(rotation.y, target_angle + PI, delta * turn_speed)
+		else:
+			velocity.x = 0.0
+			velocity.z = 0.0
 
-			move_and_slide()
+		move_and_slide()
 
-			# Position player right behind cart push handle without locking camera rotation
-			var handle_offset = Vector3(0, 0, 0.95)
-			var handle_pos = global_transform * handle_offset
-			pushing_player.global_position = Vector3(handle_pos.x, pushing_player.global_position.y, handle_pos.z)
+		# Keep player attached behind handle (doesn't affect camera direction)
+		var handle_pos = global_transform * Vector3(0, 0, 0.95)
+		pushing_player.global_position = Vector3(handle_pos.x, pushing_player.global_position.y, handle_pos.z)
 
-			# Broadcast transform to all peers
-			if multiplayer.has_multiplayer_peer():
-				rpc_id(0, "_sync_cart_transform", global_position, rotation)
+		# Broadcast to peers in multiplayer
+		if multiplayer.has_multiplayer_peer():
+			rpc_id(0, "_sync_cart_transform", global_position, rotation)
 	else:
 		move_and_slide()
 

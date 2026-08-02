@@ -328,8 +328,13 @@ func _physics_process(delta: float) -> void:
 	if camera and not camera.current:
 		camera.make_current()
 
+	# While pushing cart, player body doesn't move independently (cart drives them)
 	if is_pushing_cart:
-		velocity = Vector3.ZERO
+		# Still need to run the rest of _physics_process for E key interaction!
+		# Show the release prompt and handle E to stop pushing
+		if Input.is_action_just_pressed("interact") and is_instance_valid(pushed_cart):
+			pushed_cart.stop_pushing()
+			return
 		return
 
 	# Handle Right Stick camera look for controllers (PlayStation DualShock/DualSense)
