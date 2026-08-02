@@ -808,6 +808,16 @@ func _physics_process(delta: float) -> void:
 			# Automatically import crouch animations from Crouching Idle.fbx and Crouched Walking.fbx
 			if not anim_player.has_meta("crouch_imported"):
 				anim_player.set_meta("crouch_imported", true)
+				
+				# Get sample track path prefix from existing working walk animation
+				var sample_prefix = ""
+				if anim_player.has_animation("Armature|preset_biped_walk"):
+					var sample_anim = anim_player.get_animation("Armature|preset_biped_walk")
+					if sample_anim and sample_anim.get_track_count() > 0:
+						var full_p = str(sample_anim.track_get_path(0))
+						if ":" in full_p:
+							sample_prefix = full_p.split(":")[0] + ":"
+
 				var crouch_files = {
 					"crouch_idle": "res://Crouching Idle.fbx",
 					"crouch_walk": "res://Crouched Walking.fbx"
@@ -829,8 +839,19 @@ func _physics_process(delta: float) -> void:
 										continue
 									var anim_obj = fbx_ap.get_animation(anim_name)
 									if anim_obj:
-										default_lib.add_animation(key, anim_obj.duplicate())
-										print("[Player] Imported crouch animation '", key, "' from ", file_path)
+										var anim_dup = anim_obj.duplicate()
+										
+										# Re-map track path prefixes to match CitrusModel skeleton path
+										if sample_prefix != "":
+											for track_idx in range(anim_dup.get_track_count()):
+												var orig_p = str(anim_dup.track_get_path(track_idx))
+												if ":" in orig_p:
+													var bone_part = orig_p.split(":")[1]
+													var new_p = NodePath(sample_prefix + bone_part)
+													anim_dup.track_set_path(track_idx, new_p)
+
+										default_lib.add_animation(key, anim_dup)
+										print("[Player] Imported and re-mapped crouch animation '", key, "' from ", file_path)
 										break
 							scene_inst.queue_free()
 
@@ -886,11 +907,8 @@ func _physics_process(delta: float) -> void:
 				else:
 					anim_player.speed_scale = 1.0
 
-				# Adjust 3D model rotation pitch for Mixamo FBX crouch orientation
-				if anim_to_play == "crouch_idle" or anim_to_play == "crouch_walk":
-					citrus_model.rotation_degrees.x = lerp(citrus_model.rotation_degrees.x, 90.0, delta * 15.0)
-				else:
-					citrus_model.rotation_degrees.x = lerp(citrus_model.rotation_degrees.x, 0.0, delta * 15.0)
+				# Keep model orientation clean
+				citrus_model.rotation_degrees.x = lerp(citrus_model.rotation_degrees.x, 0.0, delta * 15.0)
 			else:
 				if anim_player.is_playing():
 					anim_player.stop()
