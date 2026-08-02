@@ -79,13 +79,20 @@ func _sync_set_pushing_player(player_path: NodePath) -> void:
 	if is_instance_valid(p):
 		pushing_player = p
 		is_being_pushed = true
+		add_collision_exception_with(p)
+		if p is PhysicsBody3D:
+			p.add_collision_exception_with(self)
 		if p.has_method("set_pushing_cart"):
 			p.set_pushing_cart(true, self)
 
 @rpc("any_peer", "call_local", "reliable")
 func _sync_stop_pushing() -> void:
-	if is_instance_valid(pushing_player) and pushing_player.has_method("set_pushing_cart"):
-		pushing_player.set_pushing_cart(false, null)
+	if is_instance_valid(pushing_player):
+		remove_collision_exception_with(pushing_player)
+		if pushing_player is PhysicsBody3D:
+			pushing_player.remove_collision_exception_with(self)
+		if pushing_player.has_method("set_pushing_cart"):
+			pushing_player.set_pushing_cart(false, null)
 	pushing_player = null
 	is_being_pushed = false
 	velocity = Vector3.ZERO
@@ -118,8 +125,8 @@ func _physics_process(delta: float) -> void:
 
 		move_and_slide()
 
-		# Position player right behind cart handle
-		var handle_pos = global_transform * Vector3(0, 0, -1.1)
+		# Position player right behind cart handle (positive Z is behind cart)
+		var handle_pos = global_transform * Vector3(0, 0, 1.1)
 		pushing_player.global_position = Vector3(handle_pos.x, pushing_player.global_position.y, handle_pos.z)
 		pushing_player.rotation.y = rotation.y
 
