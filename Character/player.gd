@@ -437,7 +437,7 @@ func _physics_process(delta: float) -> void:
 		head.position = head.position.lerp(base_head_pos, delta * 10.0)
 
 	# --- Hand & Foot Sway Animations (Only for procedural primitive block model) ---
-	citrus_model = body_mesh.get_node_or_null("CitrusModel")
+	var citrus_model = body_mesh.get_node_or_null("CitrusModel")
 	if citrus_model == null:
 		if carried_object != null:
 			if is_aiming:
