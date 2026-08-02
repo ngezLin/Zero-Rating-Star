@@ -1,6 +1,7 @@
 extends StaticBody3D
 
 ## Furniture that starts knocked over / messy and can be righted by pressing [E].
+## Synced across all multiplayer peers via RPC.
 
 signal tidied()
 
@@ -23,13 +24,23 @@ func get_interaction_prompt() -> String:
 func interact(player: Node = null) -> void:
 	if is_tidied:
 		return
-	is_tidied = true
-	tidied.emit()
+
+	if multiplayer.has_multiplayer_peer():
+		rpc("_sync_tidy")
+	else:
+		_sync_tidy()
 
 	if player and player.has_method("show_alert"):
 		player.show_alert("🪑 Set Upright: " + object_name + "!", 2.0)
 
-	# Smoothly animate upright into target standing transform
+@rpc("any_peer", "call_local", "reliable")
+func _sync_tidy() -> void:
+	if is_tidied:
+		return
+	is_tidied = true
+	tidied.emit()
+
+	# Smoothly animate upright into target standing transform on all peers
 	var target_rot_rad = Vector3(
 		deg_to_rad(target_rotation_degrees.x),
 		deg_to_rad(target_rotation_degrees.y),

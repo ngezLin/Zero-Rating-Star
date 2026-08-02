@@ -1,6 +1,6 @@
 extends StaticBody3D
 
-## Mobile Trash Cart / Cleaning Trolley that stores collected trash items visually inside.
+## Mobile Trash Cart / Cleaning Trolley synced across multiplayer peers via RPC.
 
 signal item_disposed()
 
@@ -26,13 +26,26 @@ func interact(player: Node = null) -> void:
 		var item = player.carried_object
 		if is_instance_valid(item) and (item.is_in_group("trash") or item.is_in_group("pickable")):
 			player.carried_object = null
-			_store_trash_in_cart(item, player)
+			var item_path = item.get_path()
+			if multiplayer.has_multiplayer_peer():
+				rpc("_sync_store_trash", item_path)
+			else:
+				_sync_store_trash(item_path)
+
+			if player.has_method("show_alert"):
+				player.show_alert("🛒 Trash Stored in Cart! (%d items)" % collected_trash_count, 1.8)
 
 func _on_body_entered(body: Node) -> void:
 	if is_instance_valid(body) and (body.is_in_group("trash") or body.is_in_group("pickable")) and not body.get("is_disposed"):
-		_store_trash_in_cart(body, null)
+		var item_path = body.get_path()
+		if multiplayer.has_multiplayer_peer():
+			rpc("_sync_store_trash", item_path)
+		else:
+			_sync_store_trash(item_path)
 
-func _store_trash_in_cart(trash_node: Node, player: Node) -> void:
+@rpc("any_peer", "call_local", "reliable")
+func _sync_store_trash(item_path: NodePath) -> void:
+	var trash_node = get_node_or_null(item_path)
 	if not is_instance_valid(trash_node):
 		return
 
@@ -55,7 +68,7 @@ func _store_trash_in_cart(trash_node: Node, player: Node) -> void:
 	else:
 		trash_node.reparent(self)
 
-	# Calculate random position inside the cart bin for visual piling effect
+	# Calculate position inside the cart bin for visual piling effect
 	var rand_offset_x = randf_range(-0.25, 0.25)
 	var rand_offset_z = randf_range(-0.15, 0.15)
 	var rand_height = min(0.35, 0.1 + (collected_trash_count * 0.05))
@@ -69,6 +82,3 @@ func _store_trash_in_cart(trash_node: Node, player: Node) -> void:
 	tween.tween_property(trash_node, "scale", Vector3(0.85, 0.85, 0.85), 0.35)
 
 	item_disposed.emit()
-
-	if player and player.has_method("show_alert"):
-		player.show_alert("🛒 Trash Stored in Cart! (%d items)" % collected_trash_count, 1.8)

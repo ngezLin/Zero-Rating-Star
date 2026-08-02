@@ -1,6 +1,7 @@
 extends StaticBody3D
 
 ## A dirty spot on the floor that players can clean by holding interact [E] for 2 seconds.
+## Synced across all multiplayer peers via RPC.
 
 signal cleaned()
 
@@ -37,13 +38,23 @@ func reset_hold() -> void:
 func interact(player: Node = null) -> void:
 	if is_cleaned:
 		return
-	is_cleaned = true
-	cleaned.emit()
+
+	if multiplayer.has_multiplayer_peer():
+		rpc("_sync_clean")
+	else:
+		_sync_clean()
 
 	if player and player.has_method("show_alert"):
 		player.show_alert("🧹 Cleaned: " + spot_name, 2.0)
 
-	# Fade out and remove
+@rpc("any_peer", "call_local", "reliable")
+func _sync_clean() -> void:
+	if is_cleaned:
+		return
+	is_cleaned = true
+	cleaned.emit()
+
+	# Fade out and remove on all peers
 	var tween = create_tween()
 	tween.tween_property(self, "scale", Vector3(0.01, 0.01, 0.01), 0.4)
 	tween.tween_callback(queue_free)

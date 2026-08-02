@@ -1,6 +1,6 @@
 extends StaticBody3D
 
-## Dirty Blanket task on the bed.
+## Messy Bed Blanket task synced across multiplayer peers via RPC.
 ## Requires holding [E] for 5 seconds to fix/clean.
 ## Emits a dust particle effect while the player is cleaning it.
 
@@ -42,8 +42,11 @@ func process_hold_interaction(delta: float, player: Node = null) -> bool:
 	current_hold_time += delta
 
 	# Enable dust particle effect while cleaning
-	if dust_particles:
-		dust_particles.emitting = true
+	if dust_particles and not dust_particles.emitting:
+		if multiplayer.has_multiplayer_peer():
+			rpc("_sync_set_dust", true)
+		else:
+			_sync_set_dust(true)
 
 	if current_hold_time >= hold_time_required:
 		interact(player)
@@ -52,10 +55,31 @@ func process_hold_interaction(delta: float, player: Node = null) -> bool:
 
 func reset_hold() -> void:
 	current_hold_time = 0.0
-	if dust_particles:
-		dust_particles.emitting = false
+	if dust_particles and dust_particles.emitting:
+		if multiplayer.has_multiplayer_peer():
+			rpc("_sync_set_dust", false)
+		else:
+			_sync_set_dust(false)
 
 func interact(player: Node = null) -> void:
+	if is_cleaned:
+		return
+
+	if multiplayer.has_multiplayer_peer():
+		rpc("_sync_clean")
+	else:
+		_sync_clean()
+
+	if player and player.has_method("show_alert"):
+		player.show_alert("✨ Fixed: " + spot_name + "! Bed made.", 2.5)
+
+@rpc("any_peer", "call_local", "reliable")
+func _sync_set_dust(emitting: bool) -> void:
+	if dust_particles:
+		dust_particles.emitting = emitting
+
+@rpc("any_peer", "call_local", "reliable")
+func _sync_clean() -> void:
 	if is_cleaned:
 		return
 	is_cleaned = true
@@ -68,6 +92,3 @@ func interact(player: Node = null) -> void:
 		blanket_mesh.material_override = clean_material
 
 	cleaned.emit()
-
-	if player and player.has_method("show_alert"):
-		player.show_alert("✨ Fixed: " + spot_name + "! Bed made.", 2.5)
