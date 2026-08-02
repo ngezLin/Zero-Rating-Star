@@ -56,6 +56,8 @@ var active_slot_index: int = 0
 var highlight_material: StandardMaterial3D
 var hovered_mesh: MeshInstance3D = null
 var current_hold_target: Node = null
+var is_pushing_cart: bool = false
+var pushed_cart: Node = null
 
 var carried_object: RigidBody3D = null
 var original_parent: Node = null
@@ -315,12 +317,20 @@ func _select_slot(index: int) -> void:
 	if mop_tool:
 		mop_tool.visible = (active_slot_index == 1)
 
+func set_pushing_cart(pushing: bool, cart: Node = null) -> void:
+	is_pushing_cart = pushing
+	pushed_cart = cart
+
 func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority():
 		return
 
 	if camera and not camera.current:
 		camera.make_current()
+
+	if is_pushing_cart:
+		velocity = Vector3.ZERO
+		return
 
 	# Handle Right Stick camera look for controllers (PlayStation DualShock/DualSense)
 	var rs_x = Input.get_joy_axis(0, JOY_AXIS_RIGHT_X)

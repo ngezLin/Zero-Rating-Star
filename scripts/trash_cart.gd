@@ -1,13 +1,18 @@
-extends StaticBody3D
+extends CharacterBody3D
 
-## Mobile Trash Cart / Cleaning Trolley synced across multiplayer peers via RPC.
+## Mobile Driveable/Pushable Trash Cart synced across multiplayer peers via RPC.
 
 signal item_disposed()
 
+@export var drive_speed: float = 5.0
+@export var turn_speed: float = 2.5
 @export var max_storage_capacity: int = 20
 
 var stored_items: Array[Node] = []
 var collected_trash_count: int = 0
+
+var pushing_player: Node = null
+var is_being_pushed: bool = false
 
 @onready var trash_container: Node3D = $TrashContainer
 @onready var deposit_area: Area3D = $DepositArea
@@ -15,16 +20,23 @@ var collected_trash_count: int = 0
 func _ready() -> void:
 	add_to_group("interactable")
 	add_to_group("trash_cart")
+	collision_layer = 1
+	collision_mask = 1
 	if deposit_area:
 		deposit_area.body_entered.connect(_on_body_entered)
 
 func get_interaction_prompt() -> String:
-	if collected_trash_count == 0:
-		return "Trash Cart (Empty)"
-	return "Press [E] to Store Trash in Cart (%d items)" % collected_trash_count
+	if is_being_pushed:
+		return "Press [E] to Release Trash Cart | WASD to Drive"
+	
+	return "Press [E] to Push & Drive Trash Cart (%d items)" % collected_trash_count
 
 func interact(player: Node = null) -> void:
-	if player and player.get("carried_object") != null:
+	if not player:
+		return
+
+	# If player is holding a trash item, deposit it
+	if player.get("carried_object") != null:
 		var item = player.carried_object
 		if is_instance_valid(item) and (item.is_in_group("trash") or item.is_in_group("pickable")):
 			player.carried_object = null
@@ -36,6 +48,92 @@ func interact(player: Node = null) -> void:
 
 			if player.has_method("show_alert"):
 				player.show_alert("🛒 Trash Stored in Cart! (%d items)" % collected_trash_count, 1.8)
+	else:
+		# Toggle push/drive mode
+		if is_being_pushed:
+			stop_pushing()
+		else:
+			start_pushing(player)
+
+func start_pushing(player: Node) -> void:
+	if not is_instance_valid(player):
+		return
+
+	if multiplayer.has_multiplayer_peer():
+		rpc("_sync_set_pushing_player", player.get_path())
+	else:
+		_sync_set_pushing_player(player.get_path())
+
+	if player.has_method("show_alert"):
+		player.show_alert("🛒 Driving Trash Cart! WASD to Push/Steer, [E] to Release", 3.0)
+
+func stop_pushing() -> void:
+	if multiplayer.has_multiplayer_peer():
+		rpc("_sync_stop_pushing")
+	else:
+		_sync_stop_pushing()
+
+@rpc("any_peer", "call_local", "reliable")
+func _sync_set_pushing_player(player_path: NodePath) -> void:
+	var p = get_node_or_null(player_path)
+	if is_instance_valid(p):
+		pushing_player = p
+		is_being_pushed = true
+		if p.has_method("set_pushing_cart"):
+			p.set_pushing_cart(true, self)
+
+@rpc("any_peer", "call_local", "reliable")
+func _sync_stop_pushing() -> void:
+	if is_instance_valid(pushing_player) and pushing_player.has_method("set_pushing_cart"):
+		pushing_player.set_pushing_cart(false, null)
+	pushing_player = null
+	is_being_pushed = false
+	velocity = Vector3.ZERO
+
+func _physics_process(delta: float) -> void:
+	# Add gravity
+	if not is_on_floor():
+		velocity.y -= 9.8 * delta
+
+	if is_being_pushed and is_instance_valid(pushing_player) and pushing_player.is_multiplayer_authority():
+		# Drive controls using standard movement actions
+		var input_dir = Vector2.ZERO
+		if Input.is_action_pressed("move_forward"):
+			input_dir.y -= 1.0
+		if Input.is_action_pressed("move_back"):
+			input_dir.y += 1.0
+		if Input.is_action_pressed("move_left"):
+			input_dir.x -= 1.0
+		if Input.is_action_pressed("move_right"):
+			input_dir.x += 1.0
+
+		# Steering (left/right input rotates cart)
+		if input_dir.x != 0.0:
+			rotate_y(-input_dir.x * turn_speed * delta)
+
+		# Forward/backward drive velocity
+		var drive_dir = -transform.basis.z * input_dir.y
+		velocity.x = drive_dir.x * drive_speed
+		velocity.z = drive_dir.z * drive_speed
+
+		move_and_slide()
+
+		# Position player right behind cart handle
+		var handle_pos = global_transform * Vector3(0, 0, -1.1)
+		pushing_player.global_position = Vector3(handle_pos.x, pushing_player.global_position.y, handle_pos.z)
+		pushing_player.rotation.y = rotation.y
+
+		# Sync cart position across peers
+		if multiplayer.has_multiplayer_peer() and multiplayer.is_server():
+			rpc_id(0, "_sync_cart_transform", global_position, rotation)
+	else:
+		move_and_slide()
+
+@rpc("unreliable")
+func _sync_cart_transform(pos: Vector3, rot: Vector3) -> void:
+	if not is_being_pushed or not pushing_player or not pushing_player.is_multiplayer_authority():
+		global_position = pos
+		rotation = rot
 
 func empty_cart() -> void:
 	collected_trash_count = 0
