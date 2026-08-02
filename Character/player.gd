@@ -436,9 +436,10 @@ func _physics_process(delta: float) -> void:
 	else:
 		head.position = head.position.lerp(base_head_pos, delta * 10.0)
 
-	# --- Hand & Foot Sway Animations ---
-	# 1. Arm/Shoulder Pose/Swing Animation
-	if carried_object != null:
+	# --- Hand & Foot Sway Animations (Only for procedural primitive block model) ---
+	citrus_model = body_mesh.get_node_or_null("CitrusModel")
+	if citrus_model == null:
+		if carried_object != null:
 		if is_aiming:
 			# --- AIMING TO THROW POSE ---
 			# Point both arms straight forward to aim the throw
@@ -523,10 +524,17 @@ func _physics_process(delta: float) -> void:
 		left_foot.rotation.x = deg_to_rad(-90) + (left_foot_swing * angle_mult)
 		right_foot.rotation.x = deg_to_rad(-90) + (right_foot_swing * angle_mult)
 	else:
-		left_foot.position = left_foot.position.lerp(default_left_foot_pos, delta * 8.0)
-		right_foot.position = right_foot.position.lerp(default_right_foot_pos, delta * 8.0)
-		left_foot.rotation = left_foot.rotation.lerp(Vector3(-PI/2, 0, 0), delta * 8.0)
-		right_foot.rotation = right_foot.rotation.lerp(Vector3(-PI/2, 0, 0), delta * 8.0)
+		# Reset procedural limbs so 3D Citrus skeleton handles all body poses cleanly
+		if is_instance_valid(left_foot):
+			left_foot.position = default_left_foot_pos
+			left_foot.rotation = Vector3(deg_to_rad(-90), 0, 0)
+		if is_instance_valid(right_foot):
+			right_foot.position = default_right_foot_pos
+			right_foot.rotation = Vector3(deg_to_rad(-90), 0, 0)
+		if is_instance_valid(left_shoulder):
+			left_shoulder.rotation = Vector3.ZERO
+		if is_instance_valid(right_shoulder) and not flashlight_light.visible:
+			right_shoulder.rotation = Vector3.ZERO
 
 	# --- Sprint Camera & Screen Effect logic ---
 	var target_intensity = 1.0 if is_running else 0.0
@@ -823,8 +831,21 @@ func _physics_process(delta: float) -> void:
 										continue
 									var anim_obj = fbx_ap.get_animation(anim_name)
 									if anim_obj:
-										default_lib.add_animation(key, anim_obj.duplicate())
-										print("[Player] Imported crouch animation '", key, "' from ", file_path)
+										var anim_dup = anim_obj.duplicate()
+										# Filter out root Hips rotation tracks that cause character to tilt backwards
+										var tracks_to_remove = []
+										for track_idx in range(anim_dup.get_track_count()):
+											var track_path = str(anim_dup.track_get_path(track_idx))
+											if "Hips" in track_path and anim_dup.track_get_type(track_idx) == Animation.TYPE_ROTATION_3D:
+												tracks_to_remove.append(track_idx)
+										
+										# Remove in reverse index order
+										tracks_to_remove.reverse()
+										for t_idx in tracks_to_remove:
+											anim_dup.remove_track(t_idx)
+
+										default_lib.add_animation(key, anim_dup)
+										print("[Player] Imported and sanitized crouch animation '", key, "' from ", file_path)
 										break
 							scene_inst.queue_free()
 
