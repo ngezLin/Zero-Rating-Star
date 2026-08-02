@@ -580,10 +580,10 @@ func _physics_process(delta: float) -> void:
 		if skel:
 			var head_b = skel.find_bone("Head")
 			if head_b != -1:
-				var head_tilt = clamp(-vertical_look * 0.7, deg_to_rad(-55), deg_to_rad(55))
+				var head_tilt = clamp(-vertical_look * 0.5, deg_to_rad(-45), deg_to_rad(45))
 				var tilt_quat = Quaternion(Vector3(1, 0, 0), head_tilt)
-				var base_rot = skel.get_bone_pose_rotation(head_b)
-				skel.set_bone_pose_rotation(head_b, base_rot * tilt_quat)
+				var rest_rot = skel.get_bone_rest(head_b).basis.get_rotation_quaternion()
+				skel.set_bone_pose_rotation(head_b, rest_rot * tilt_quat)
 
 	# Dynamically show/hide 3D Citrus model in first-person mode
 	if current_camera_mode == CameraMode.FIRST_PERSON:
