@@ -830,20 +830,19 @@ func _physics_process(delta: float) -> void:
 									var anim_obj = fbx_ap.get_animation(anim_name)
 									if anim_obj:
 										var anim_dup = anim_obj.duplicate()
-										# Filter out root Hips rotation tracks that cause character to tilt backwards
-										var tracks_to_remove = []
+										# Apply -90° X pitch correction to root bone rotation keyframes to align Mixamo FBX with GLB skeleton
+										var fix_quat = Quaternion(Vector3(1, 0, 0), deg_to_rad(-90))
 										for track_idx in range(anim_dup.get_track_count()):
-											var track_path = str(anim_dup.track_get_path(track_idx))
-											if "Hips" in track_path and anim_dup.track_get_type(track_idx) == Animation.TYPE_ROTATION_3D:
-												tracks_to_remove.append(track_idx)
-										
-										# Remove in reverse index order
-										tracks_to_remove.reverse()
-										for t_idx in tracks_to_remove:
-											anim_dup.remove_track(t_idx)
+											if anim_dup.track_get_type(track_idx) == Animation.TYPE_ROTATION_3D:
+												var track_path = str(anim_dup.track_get_path(track_idx))
+												if "Hips" in track_path or "Root" in track_path or track_idx == 0:
+													for key_i in range(anim_dup.track_get_key_count(track_idx)):
+														var orig_quat = anim_dup.track_get_key_value(track_idx, key_i)
+														if orig_quat is Quaternion:
+															anim_dup.track_set_key_value(track_idx, key_i, fix_quat * orig_quat)
 
 										default_lib.add_animation(key, anim_dup)
-										print("[Player] Imported and sanitized crouch animation '", key, "' from ", file_path)
+										print("[Player] Imported and aligned crouch animation '", key, "' from ", file_path)
 										break
 							scene_inst.queue_free()
 
