@@ -676,8 +676,21 @@ func _physics_process(delta: float) -> void:
 					carried_object.set_collision_layer_value(1, false)
 					carried_object.set_collision_mask_value(1, false)
 	else:
-		# Cancel Aiming/Drop if interact button (E) is pressed
-		if Input.is_action_just_pressed("interact"):
+		# Allow interacting with targets (e.g. TrashBin) while carrying an object
+		if can_interact and is_instance_valid(ray_target) and ray_target.has_method("interact"):
+			if ray_target.has_method("get_interaction_prompt"):
+				var prompt = ray_target.get_interaction_prompt()
+				if prompt != "":
+					prompt_label.text = prompt
+					prompt_label.visible = true
+			else:
+				prompt_label.text = "Press [E] to Interact"
+				prompt_label.visible = true
+			
+			if Input.is_action_just_pressed("interact"):
+				ray_target.interact(self)
+		# Otherwise drop carried object on floor if interact button (E) is pressed
+		elif Input.is_action_just_pressed("interact"):
 			is_aiming = false
 			for dot in trajectory_dots:
 				dot.visible = false
@@ -685,11 +698,13 @@ func _physics_process(delta: float) -> void:
 			var obj = carried_object
 			carried_object = null
 			
-			obj.set_collision_layer_value(1, true)
-			obj.set_collision_mask_value(1, true)
-			obj.reparent(original_parent)
-			obj.scale = Vector3.ONE
-			obj.freeze = false
+			if is_instance_valid(obj):
+				obj.set_collision_layer_value(1, true)
+				obj.set_collision_mask_value(1, true)
+				if is_instance_valid(original_parent):
+					obj.reparent(original_parent)
+				obj.scale = Vector3.ONE
+				obj.freeze = false
 		
 		# Aiming Mode (Hold Left Click)
 		elif Input.is_action_pressed("throw"):
