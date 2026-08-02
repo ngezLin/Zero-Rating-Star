@@ -574,8 +574,18 @@ func _physics_process(delta: float) -> void:
 	spring_arm.rotation.y = target_spring_yaw
 	head.rotation.x = target_head_pitch
 	
-	# Dynamically show/hide the 3D Citrus character model depending on perspective
-	citrus_model = body_mesh.get_node_or_null("CitrusModel")
+	# --- Dynamic Head Bone Pointer Tracking (Tilt head toward crosshair pointer) ---
+	if citrus_model:
+		var skel = citrus_model.find_child("Skeleton3D", true, false) as Skeleton3D
+		if skel:
+			var head_b = skel.find_bone("Head")
+			if head_b != -1:
+				var head_pitch = clamp(vertical_look * 0.75, deg_to_rad(-50), deg_to_rad(50))
+				var pitch_quat = Quaternion(Vector3(1, 0, 0), head_pitch)
+				var cur_rot = skel.get_bone_pose_rotation(head_b)
+				skel.set_bone_pose_rotation(head_b, cur_rot * pitch_quat)
+
+	# Dynamically show/hide 3D Citrus model in first-person mode
 	if current_camera_mode == CameraMode.FIRST_PERSON:
 		camera.cull_mask = 1048573 # Hide layer 2 (eyes) to prevent clipping
 		if citrus_model:
