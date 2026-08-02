@@ -1,6 +1,7 @@
 extends RigidBody3D
 
 ## Pickable and disposable trash item (Soda Can, Paper Ball, Crushed Box).
+## Stored inside Trash Cart when collected.
 
 signal disposed()
 
@@ -18,9 +19,3 @@ func dispose() -> void:
 		return
 	is_disposed = true
 	disposed.emit()
-
-	# Shrink & fade out into trash bin
-	freeze = true
-	var tween = create_tween()
-	tween.tween_property(self, "scale", Vector3(0.01, 0.01, 0.01), 0.3)
-	tween.tween_callback(queue_free)

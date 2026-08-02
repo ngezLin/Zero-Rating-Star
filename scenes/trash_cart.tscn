@@ -100,7 +100,7 @@ material_override = SubResource("mat_cart_frame")
 
 ; ====== INTERNAL TRASH STORAGE CONTAINER ======
 [node name="TrashContainer" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
 
 ; ====== DEPOSIT AREA ======
 [node name="DepositArea" type="Area3D" parent="."]

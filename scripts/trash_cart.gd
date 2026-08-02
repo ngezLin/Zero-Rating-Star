@@ -52,7 +52,11 @@ func _sync_store_trash(item_path: NodePath) -> void:
 	if trash_node.get("is_disposed") == true:
 		return
 
-	trash_node.set("is_disposed", true)
+	if trash_node.has_method("dispose"):
+		trash_node.dispose()
+	else:
+		trash_node.set("is_disposed", true)
+
 	collected_trash_count += 1
 	stored_items.append(trash_node)
 
@@ -71,7 +75,7 @@ func _sync_store_trash(item_path: NodePath) -> void:
 	# Calculate position inside the cart bin for visual piling effect
 	var rand_offset_x = randf_range(-0.25, 0.25)
 	var rand_offset_z = randf_range(-0.15, 0.15)
-	var rand_height = min(0.35, 0.1 + (collected_trash_count * 0.05))
+	var rand_height = 0.05 + (collected_trash_count * 0.06)
 	var target_pos = Vector3(rand_offset_x, rand_height, rand_offset_z)
 	var target_rot = Vector3(randf_range(-0.4, 0.4), randf_range(-3.14, 3.14), randf_range(-0.4, 0.4))
 
@@ -79,6 +83,6 @@ func _sync_store_trash(item_path: NodePath) -> void:
 	var tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(trash_node, "position", target_pos, 0.35)
 	tween.tween_property(trash_node, "rotation", target_rot, 0.35)
-	tween.tween_property(trash_node, "scale", Vector3(0.85, 0.85, 0.85), 0.35)
+	tween.tween_property(trash_node, "scale", Vector3(1.1, 1.1, 1.1), 0.35)
 
 	item_disposed.emit()

@@ -63,12 +63,17 @@ func _randomize_spot_positions() -> void:
 
 func _find_dirty_spots(node: Node) -> void:
 	for child in node.get_children():
+		# Skip TrashCart node itself so it doesn't duplicate signal counts
+		if child.is_in_group("trash_cart"):
+			_find_dirty_spots(child)
+			continue
+
 		if child.has_signal("cleaned"):
 			dirty_spots.append(child)
 			child.cleaned.connect(_on_spot_cleaned)
-		elif child.has_signal("item_disposed"):
+		elif child.has_signal("disposed"):
 			dirty_spots.append(child)
-			child.item_disposed.connect(_on_spot_cleaned)
+			child.disposed.connect(_on_spot_cleaned)
 		elif child.has_signal("tidied"):
 			dirty_spots.append(child)
 			child.tidied.connect(_on_spot_cleaned)
