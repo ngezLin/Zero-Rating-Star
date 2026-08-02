@@ -118,15 +118,15 @@ func _physics_process(delta: float) -> void:
 		if input_dir.x != 0.0:
 			rotate_y(-input_dir.x * turn_speed * delta)
 
-		# Forward/backward drive velocity
+		# Forward/backward drive velocity along cart forward heading
 		var drive_dir = -transform.basis.z * input_dir.y
 		velocity.x = drive_dir.x * drive_speed
 		velocity.z = drive_dir.z * drive_speed
 
 		move_and_slide()
 
-		# Position player right behind cart handle (positive Z is behind cart)
-		var handle_pos = global_transform * Vector3(0, 0, 1.1)
+		# Position player right behind cart push handle facing forward
+		var handle_pos = global_transform * Vector3(0, 0, -0.9)
 		pushing_player.global_position = Vector3(handle_pos.x, pushing_player.global_position.y, handle_pos.z)
 		pushing_player.rotation.y = rotation.y
 
