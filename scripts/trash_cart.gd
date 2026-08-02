@@ -4,8 +4,8 @@ extends CharacterBody3D
 
 signal item_disposed()
 
-@export var drive_speed: float = 5.0
-@export var turn_speed: float = 2.5
+@export var drive_speed: float = 4.5
+@export var turn_speed: float = 8.0
 @export var max_storage_capacity: int = 20
 
 var stored_items: Array[Node] = []
@@ -35,7 +35,7 @@ func interact(player: Node = null) -> void:
 	if not player:
 		return
 
-	# If player is holding a trash item, deposit it
+	# If player is holding a trash item, deposit it into cart
 	if player.get("carried_object") != null:
 		var item = player.carried_object
 		if is_instance_valid(item) and (item.is_in_group("trash") or item.is_in_group("pickable")):
@@ -65,7 +65,7 @@ func start_pushing(player: Node) -> void:
 		_sync_set_pushing_player(player.get_path())
 
 	if player.has_method("show_alert"):
-		player.show_alert("🛒 Driving Trash Cart! WASD to Push/Steer, [E] to Release", 3.0)
+		player.show_alert("🛒 Driving Trash Cart! WASD to Push & Steer, [E] to Release", 3.0)
 
 func stop_pushing() -> void:
 	if multiplayer.has_multiplayer_peer():
@@ -79,6 +79,11 @@ func _sync_set_pushing_player(player_path: NodePath) -> void:
 	if is_instance_valid(p):
 		pushing_player = p
 		is_being_pushed = true
+		
+		# Transfer network authority to driving player so physics synced smoothly
+		if p.is_inside_tree():
+			set_multiplayer_authority(p.get_multiplayer_authority())
+
 		add_collision_exception_with(p)
 		if p is PhysicsBody3D:
 			p.add_collision_exception_with(self)
@@ -102,37 +107,34 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity.y -= 9.8 * delta
 
-	if is_being_pushed and is_instance_valid(pushing_player) and pushing_player.is_multiplayer_authority():
-		# Drive controls using standard movement actions
-		var input_dir = Vector2.ZERO
-		if Input.is_action_pressed("move_forward"):
-			input_dir.y -= 1.0
-		if Input.is_action_pressed("move_back"):
-			input_dir.y += 1.0
-		if Input.is_action_pressed("move_left"):
-			input_dir.x -= 1.0
-		if Input.is_action_pressed("move_right"):
-			input_dir.x += 1.0
+	if is_being_pushed and is_instance_valid(pushing_player):
+		# Only process local driving inputs if this client is the authority for the pushing player
+		if pushing_player.is_multiplayer_authority():
+			var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 
-		# Steering (left/right input rotates cart)
-		if input_dir.x != 0.0:
-			rotate_y(-input_dir.x * turn_speed * delta)
+			if input_dir.length() > 0.05:
+				# Calculate movement direction relative to player's camera facing
+				var move_dir = (pushing_player.transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
+				velocity.x = move_dir.x * drive_speed
+				velocity.z = move_dir.z * drive_speed
 
-		# Forward/backward drive velocity along cart forward heading
-		var drive_dir = -transform.basis.z * input_dir.y
-		velocity.x = drive_dir.x * drive_speed
-		velocity.z = drive_dir.z * drive_speed
+				# Smoothly rotate cart to face movement direction
+				var target_angle = atan2(-move_dir.x, -move_dir.z)
+				rotation.y = lerp_angle(rotation.y, target_angle, delta * turn_speed)
+			else:
+				velocity.x = move_toward(velocity.x, 0, drive_speed * delta * 5.0)
+				velocity.z = move_toward(velocity.z, 0, drive_speed * delta * 5.0)
 
-		move_and_slide()
+			move_and_slide()
 
-		# Position player right behind cart push handle facing forward
-		var handle_pos = global_transform * Vector3(0, 0, 0.95)
-		pushing_player.global_position = Vector3(handle_pos.x, pushing_player.global_position.y, handle_pos.z)
-		pushing_player.rotation.y = rotation.y
+			# Position player right behind cart push handle without locking camera rotation
+			var handle_offset = Vector3(0, 0, 0.95)
+			var handle_pos = global_transform * handle_offset
+			pushing_player.global_position = Vector3(handle_pos.x, pushing_player.global_position.y, handle_pos.z)
 
-		# Sync cart position across peers
-		if multiplayer.has_multiplayer_peer() and multiplayer.is_server():
-			rpc_id(0, "_sync_cart_transform", global_position, rotation)
+			# Broadcast transform to all peers
+			if multiplayer.has_multiplayer_peer():
+				rpc_id(0, "_sync_cart_transform", global_position, rotation)
 	else:
 		move_and_slide()
 
