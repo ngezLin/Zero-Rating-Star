@@ -109,25 +109,20 @@ func _physics_process(delta: float) -> void:
 
 	if is_being_pushed and is_instance_valid(pushing_player):
 		var forward = Input.get_action_strength("move_forward") - Input.get_action_strength("move_back")
-		var strafe  = Input.get_action_strength("move_right")  - Input.get_action_strength("move_left")
+		var steer   = Input.get_action_strength("move_right")   - Input.get_action_strength("move_left")
 
-		if abs(forward) > 0.05 or abs(strafe) > 0.05:
-			# Move relative to player's current facing direction
-			var cam_basis = pushing_player.transform.basis
-			var move_dir = (cam_basis.z * -forward + cam_basis.x * strafe).normalized()
-			velocity.x = move_dir.x * drive_speed
-			velocity.z = move_dir.z * drive_speed
+		# A/D rotates (steers) the cart
+		if abs(steer) > 0.05:
+			rotation.y -= steer * turn_speed * delta
 
-			# Smoothly rotate cart to face movement direction
-			var target_angle = atan2(move_dir.x, move_dir.z)
-			rotation.y = lerp_angle(rotation.y, target_angle + PI, delta * turn_speed)
-		else:
-			velocity.x = 0.0
-			velocity.z = 0.0
+		# W/S drives along the cart's current forward axis
+		var drive_dir = -transform.basis.z
+		velocity.x = drive_dir.x * forward * drive_speed
+		velocity.z = drive_dir.z * forward * drive_speed
 
 		move_and_slide()
 
-		# Keep player attached behind handle (doesn't affect camera direction)
+		# Keep player locked to push handle at the back
 		var handle_pos = global_transform * Vector3(0, 0, 0.95)
 		pushing_player.global_position = Vector3(handle_pos.x, pushing_player.global_position.y, handle_pos.z)
 
