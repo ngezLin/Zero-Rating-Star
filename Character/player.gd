@@ -809,14 +809,14 @@ func _physics_process(delta: float) -> void:
 			if not anim_player.has_meta("crouch_imported"):
 				anim_player.set_meta("crouch_imported", true)
 				
-				# Get sample track path prefix from existing working walk animation
-				var sample_prefix = ""
+				# Get exact Skeleton3D node path prefix from CitrusModel walk animation (e.g. "Armature/Skeleton3D:")
+				var target_prefix = "Armature/Skeleton3D:"
 				if anim_player.has_animation("Armature|preset_biped_walk"):
 					var sample_anim = anim_player.get_animation("Armature|preset_biped_walk")
 					if sample_anim and sample_anim.get_track_count() > 0:
-						var full_p = str(sample_anim.track_get_path(0))
-						if ":" in full_p:
-							sample_prefix = full_p.split(":")[0] + ":"
+						var sample_p = str(sample_anim.track_get_path(0))
+						if ":" in sample_p:
+							target_prefix = sample_p.split(":")[0] + ":"
 
 				var crouch_files = {
 					"crouch_idle": "res://Crouching Idle.fbx",
@@ -834,27 +834,26 @@ func _physics_process(delta: float) -> void:
 						if scene_inst:
 							var fbx_ap = scene_inst.find_child("AnimationPlayer", true, false) as AnimationPlayer
 							if fbx_ap:
-								# Print target skeleton bone names
-								var target_skel = citrus_model.find_child("Skeleton3D", true, false) as Skeleton3D
-								if target_skel:
-									var skel_bones = []
-									for b_idx in range(target_skel.get_bone_count()):
-										skel_bones.append(target_skel.get_bone_name(b_idx))
-									print("[DIAGNOSTIC] CitrusModel Skeleton Bones: ", skel_bones)
-
 								for anim_name in fbx_ap.get_animation_list():
 									if anim_name == "RESET":
 										continue
 									var anim_obj = fbx_ap.get_animation(anim_name)
 									if anim_obj:
 										var anim_dup = anim_obj.duplicate()
-										var fbx_tracks = []
-										for t_i in range(anim_dup.get_track_count()):
-											fbx_tracks.append(str(anim_dup.track_get_path(t_i)))
-										print("[DIAGNOSTIC] FBX Tracks for '", key, "': ", fbx_tracks)
+										
+										# Strip ParentNode container tracks and map bone tracks to target_prefix
+										for track_idx in range(anim_dup.get_track_count() - 1, -1, -1):
+											var track_path_str = str(anim_dup.track_get_path(track_idx))
+											if ":" in track_path_str:
+												var bone_name = track_path_str.split(":")[1]
+												var new_path = NodePath(target_prefix + bone_name)
+												anim_dup.track_set_path(track_idx, new_path)
+											else:
+												# Remove non-bone scene parent tracks
+												anim_dup.remove_track(track_idx)
 
 										default_lib.add_animation(key, anim_dup)
-										print("[Player] Imported crouch animation '", key, "' from ", file_path)
+										print("[Player] Successfully imported & mapped ", key, " with target prefix: ", target_prefix)
 										break
 							scene_inst.queue_free()
 
