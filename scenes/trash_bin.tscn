@@ -1,42 +1,44 @@
-[gd_scene format=3 uid="uid://b8k12j34l5m6n"]
+[gd_scene format=3 uid="uid://trash_bin_scene1"]
 
-[ext_resource type="Script" path="res://scripts/trash_bin.gd" id="1_bin"]
+[ext_resource type="Script" path="res://scripts/trash_bin.gd" id="1_trash_bin"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bin"]
-albedo_color = Color(0.2, 0.45, 0.25, 1)
+[sub_resource type="StandardMaterial3D" id="mat_bin_outer"]
+albedo_color = Color(0.22, 0.25, 0.28, 1)
 roughness = 0.5
 
-[sub_resource type="CylinderMesh" id="CylinderMesh_bin"]
-top_radius = 0.45
-bottom_radius = 0.38
-height = 0.9
+[sub_resource type="StandardMaterial3D" id="mat_bin_inner"]
+albedo_color = Color(0.12, 0.12, 0.14, 1)
+roughness = 0.8
 
-[sub_resource type="CylinderShape3D" id="CylinderShape3D_body"]
-top_radius = 0.45
-bottom_radius = 0.38
-height = 0.9
+[sub_resource type="CylinderMesh" id="mesh_bin"]
+top_radius = 0.25
+bottom_radius = 0.2
+height = 0.55
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_trigger"]
-size = Vector3(0.8, 0.4, 0.8)
+[sub_resource type="CylinderShape3D" id="shape_bin"]
+top_radius = 0.26
+bottom_radius = 0.21
+height = 0.55
 
-[node name="TrashBin" type="StaticBody3D" groups=["trash_bin"]]
-collision_layer = 1
-collision_mask = 1
+[sub_resource type="CylinderShape3D" id="shape_deposit_area"]
+top_radius = 0.25
+bottom_radius = 0.25
+height = 0.35
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
-mesh = SubResource("CylinderMesh_bin")
-surface_material_override/0 = SubResource("StandardMaterial3D_bin")
+[node name="TrashBin" type="StaticBody3D"]
+script = ExtResource("1_trash_bin")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.275, 0)
+shape = SubResource("shape_bin")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.275, 0)
+mesh = SubResource("mesh_bin")
+material_override = SubResource("mat_bin_outer")
+
+[node name="DepositArea" type="Area3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
-shape = SubResource("CylinderShape3D_body")
 
-[node name="TrashBinLogic" type="Node3D" parent="."]
-script = ExtResource("1_bin")
-
-[node name="Area3D" type="Area3D" parent="TrashBinLogic"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="TrashBinLogic/Area3D"]
-shape = SubResource("BoxShape3D_trigger")
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DepositArea"]
+shape = SubResource("shape_deposit_area")

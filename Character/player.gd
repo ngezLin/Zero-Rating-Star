@@ -55,6 +55,7 @@ var active_slot_index: int = 0
 
 var highlight_material: StandardMaterial3D
 var hovered_mesh: MeshInstance3D = null
+var current_hold_target: Node = null
 
 var carried_object: RigidBody3D = null
 var original_parent: Node = null
@@ -603,6 +604,12 @@ func _physics_process(delta: float) -> void:
 		dot_crosshair.scale = Vector2(1.0, 1.0)
 		dot_crosshair.pivot_offset = Vector2(3, 3)
 
+	# Reset hold timer on previous target if user looks away
+	if ray_target != current_hold_target:
+		if is_instance_valid(current_hold_target) and current_hold_target.has_method("reset_hold"):
+			current_hold_target.reset_hold()
+		current_hold_target = ray_target
+
 	# --- Pickup & Loot Interaction System ---
 	if carried_object == null:
 		prompt_label.visible = false
@@ -618,18 +625,33 @@ func _physics_process(delta: float) -> void:
 						prompt_label.text = "Stolen Loot! +$%d" % amount
 						prompt_label.visible = true
 			elif ray_target.has_method("interact"):
-				if ray_target.has_method("get_interaction_prompt"):
-					var prompt = ray_target.get_interaction_prompt()
-					if prompt != "":
-						prompt_label.text = prompt
-						prompt_label.visible = true
+				if ray_target.has_method("process_hold_interaction"):
+					if Input.is_action_pressed("interact"):
+						var finished = ray_target.process_hold_interaction(delta, self)
+						if finished:
+							prompt_label.visible = false
+					else:
+						if ray_target.has_method("reset_hold"):
+							ray_target.reset_hold()
+					
+					if is_instance_valid(ray_target) and ray_target.has_method("get_interaction_prompt"):
+						var prompt = ray_target.get_interaction_prompt()
+						if prompt != "":
+							prompt_label.text = prompt
+							prompt_label.visible = true
 				else:
-					prompt_label.text = "Press [E] to Interact"
-					prompt_label.visible = true
-				if Input.is_action_just_pressed("interact"):
-					ray_target.interact(self)
-				elif Input.is_action_just_pressed("crouch") and ray_target.has_method("deny_current_guest"):
-					ray_target.deny_current_guest(self)
+					if ray_target.has_method("get_interaction_prompt"):
+						var prompt = ray_target.get_interaction_prompt()
+						if prompt != "":
+							prompt_label.text = prompt
+							prompt_label.visible = true
+					else:
+						prompt_label.text = "Press [E] to Interact"
+						prompt_label.visible = true
+					if Input.is_action_just_pressed("interact"):
+						ray_target.interact(self)
+					elif Input.is_action_just_pressed("crouch") and ray_target.has_method("deny_current_guest"):
+						ray_target.deny_current_guest(self)
 			elif ray_target.is_in_group("pickable"):
 				prompt_label.text = "Press [E] to Pick Up Trash"
 				prompt_label.visible = true
