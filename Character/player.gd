@@ -885,9 +885,16 @@ func _physics_process(delta: float) -> void:
 					anim_player.speed_scale = clamp(horizontal_speed / 2.2, 0.6, 1.5)
 				else:
 					anim_player.speed_scale = 1.0
+
+				# Adjust 3D model rotation pitch for Mixamo FBX crouch orientation
+				if anim_to_play == "crouch_idle" or anim_to_play == "crouch_walk":
+					citrus_model.rotation_degrees.x = lerp(citrus_model.rotation_degrees.x, 90.0, delta * 15.0)
+				else:
+					citrus_model.rotation_degrees.x = lerp(citrus_model.rotation_degrees.x, 0.0, delta * 15.0)
 			else:
 				if anim_player.is_playing():
 					anim_player.stop()
+				citrus_model.rotation_degrees.x = lerp(citrus_model.rotation_degrees.x, 0.0, delta * 15.0)
 
 	move_and_slide()
 	
