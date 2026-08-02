@@ -363,12 +363,12 @@ func _physics_process(delta: float) -> void:
 	var is_crouching = (Input.is_action_pressed("crouch") or Input.get_joy_axis(0, JOY_AXIS_TRIGGER_LEFT) > 0.3) and is_on_floor()
 	var is_sneaking = Input.is_action_pressed("sneak") and is_on_floor() and not is_crouching
 
-	# Keep body mesh scale stable (crouch scale if crouching)
-	var target_crouch_scale = 0.65 if is_crouching else 1.0
+	# Keep body mesh scale natural when full skeletal crouch animations are active
+	var target_crouch_scale = 1.0
 	body_mesh.scale = Vector3(1.0, target_crouch_scale, 1.0)
 
-	# Lower head position when crouching
-	var target_head_y = default_head_pos.y * 0.55 if is_crouching else default_head_pos.y
+	# Lower head position when crouching for camera perspective
+	var target_head_y = default_head_pos.y * 0.65 if is_crouching else default_head_pos.y
 	head.position.y = lerp(head.position.y, target_head_y, delta * 10.0)
 
 	# Adjust collision shape height
@@ -799,6 +799,35 @@ func _physics_process(delta: float) -> void:
 									default_lib.add_animation(anim_name, fbx_anim.duplicate())
 						fbx_scene.queue_free()
 			
+			# Automatically import crouch animations from Crouching Idle.fbx and Crouched Walking.fbx
+			if not anim_player.has_meta("crouch_imported"):
+				anim_player.set_meta("crouch_imported", true)
+				var crouch_files = {
+					"crouch_idle": "res://Crouching Idle.fbx",
+					"crouch_walk": "res://Crouched Walking.fbx"
+				}
+				var default_lib = anim_player.get_animation_library("")
+				if not default_lib:
+					default_lib = AnimationLibrary.new()
+					anim_player.add_animation_library("", default_lib)
+
+				for key in crouch_files.keys():
+					var file_path = crouch_files[key]
+					if ResourceLoader.exists(file_path):
+						var scene_inst = load(file_path).instantiate()
+						if scene_inst:
+							var fbx_ap = scene_inst.find_child("AnimationPlayer", true, false) as AnimationPlayer
+							if fbx_ap:
+								for anim_name in fbx_ap.get_animation_list():
+									if anim_name == "RESET":
+										continue
+									var anim_obj = fbx_ap.get_animation(anim_name)
+									if anim_obj:
+										default_lib.add_animation(key, anim_obj.duplicate())
+										print("[Player] Imported crouch animation '", key, "' from ", file_path)
+										break
+							scene_inst.queue_free()
+
 			var walk_anim = "Armature|preset_biped_walk"
 			var idle_anim = "Armature|preset_biped_wait"
 			var jump_anim = ""
@@ -816,6 +845,15 @@ func _physics_process(delta: float) -> void:
 					anim_to_play = jump_anim
 				elif anim_player.has_animation(walk_anim):
 					anim_to_play = walk_anim
+			elif is_crouching:
+				if horizontal_speed > 0.3 and anim_player.has_animation("crouch_walk"):
+					anim_to_play = "crouch_walk"
+				elif anim_player.has_animation("crouch_idle"):
+					anim_to_play = "crouch_idle"
+				elif horizontal_speed > 0.3 and anim_player.has_animation(walk_anim):
+					anim_to_play = walk_anim
+				elif anim_player.has_animation(idle_anim):
+					anim_to_play = idle_anim
 			elif horizontal_speed > 0.3:
 				if anim_player.has_animation(walk_anim):
 					anim_to_play = walk_anim
@@ -833,10 +871,12 @@ func _physics_process(delta: float) -> void:
 						anim_lib.add_animation(anim_to_play, anim)
 
 				if anim_player.current_animation != anim_to_play or not anim_player.is_playing():
-					anim_player.play(anim_to_play, 0.15 if anim_to_play == jump_anim else 0.25)
+					anim_player.play(anim_to_play, 0.15 if anim_to_play == jump_anim else 0.2)
 				
 				if anim_to_play == walk_anim:
 					anim_player.speed_scale = clamp(horizontal_speed / 6.0, 0.6, 1.8)
+				elif anim_to_play == "crouch_walk":
+					anim_player.speed_scale = clamp(horizontal_speed / 2.2, 0.6, 1.5)
 				else:
 					anim_player.speed_scale = 1.0
 			else:
