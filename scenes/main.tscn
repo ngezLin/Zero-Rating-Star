@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" path="res://scenes/lobby_room.tscn" id="9_lobby_room"]
 [ext_resource type="PackedScene" path="res://scenes/harbor_dock.tscn" id="10_harbor_dock"]
 [ext_resource type="PackedScene" path="res://scenes/hotel_room.tscn" id="11_hotel_room"]
+[ext_resource type="PackedScene" path="res://scenes/trash_room.tscn" id="12_trash_room"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -59,6 +60,9 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
 
 [node name="HotelRoom" parent="." unique_id=7000002 instance=ExtResource("11_hotel_room")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0.1, 0)
+
+[node name="TrashRoom" parent="." unique_id=7000003 instance=ExtResource("12_trash_room")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0.1, 0)
 
 [node name="HarborDock" parent="." unique_id=8000001 instance=ExtResource("10_harbor_dock")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 26)

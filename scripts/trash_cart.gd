@@ -19,6 +19,8 @@ func _ready() -> void:
 		deposit_area.body_entered.connect(_on_body_entered)
 
 func get_interaction_prompt() -> String:
+	if collected_trash_count == 0:
+		return "Trash Cart (Empty)"
 	return "Press [E] to Store Trash in Cart (%d items)" % collected_trash_count
 
 func interact(player: Node = null) -> void:
@@ -34,6 +36,15 @@ func interact(player: Node = null) -> void:
 
 			if player.has_method("show_alert"):
 				player.show_alert("🛒 Trash Stored in Cart! (%d items)" % collected_trash_count, 1.8)
+
+func empty_cart() -> void:
+	collected_trash_count = 0
+	for item in stored_items:
+		if is_instance_valid(item):
+			var tween = create_tween()
+			tween.tween_property(item, "scale", Vector3(0.01, 0.01, 0.01), 0.3)
+			tween.tween_callback(item.queue_free)
+	stored_items.clear()
 
 func _on_body_entered(body: Node) -> void:
 	if is_instance_valid(body) and (body.is_in_group("trash") or body.is_in_group("pickable")) and not body.get("is_disposed"):
