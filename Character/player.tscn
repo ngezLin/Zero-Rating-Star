@@ -103,6 +103,13 @@ shader_parameter/line_color = Color(0, 0, 0, 0.4)
 shader_parameter/inner_radius = 0.3
 shader_parameter/outer_radius = 0.55
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_crosshair_circle"]
+bg_color = Color(1, 1, 1, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
 [node name="Player" type="CharacterBody3D" unique_id=1024966981]
 script = ExtResource("1_4flbx")
 
@@ -295,13 +302,6 @@ layout_mode = 2
 text = "🚪 Door Has Been Opened! You can leave the room."
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_crosshair_circle"]
-bg_color = Color(1, 1, 1, 0.6)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_left = 8
-corner_radius_bottom_right = 8
 
 [node name="DotCrosshair" type="Panel" parent="InteractionPromptLayer" unique_id=2345680]
 anchors_preset = 8
