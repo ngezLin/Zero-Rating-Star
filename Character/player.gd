@@ -423,13 +423,17 @@ func _physics_process(delta: float) -> void:
 	if not is_on_floor():
 		velocity += (get_gravity() * GRAVITY_MULTIPLIER) * delta
 
+	# Handle Jump
+	if Input.is_action_just_pressed("jump") and is_on_floor() and not is_crouching:
+		velocity.y = JUMP_VELOCITY
+
 	was_on_floor = is_on_floor()
 
 	# Sneaking state
 	var is_sneaking = Input.is_action_pressed("sneak") and is_on_floor()
 	is_crouching = Input.is_action_pressed("crouch") and is_on_floor()
 
-	head.position.y = lerp(head.position.y, default_head_pos.y - (0.5 if is_crouching else 0.0), delta * 10.0)
+	head.position.y = lerp(head.position.y, default_head_pos.y - (0.15 if is_crouching else 0.0), delta * 10.0)
 	var target_height = 1.2 if is_crouching else 1.8
 	collision_shape.shape.height = lerp(collision_shape.shape.height, target_height, delta * 10.0)
 	collision_shape.position.y = (collision_shape.shape.height - 1.8) / 2.0
@@ -900,17 +904,23 @@ func _physics_process(delta: float) -> void:
 			
 			# Discover available animation names from model's AnimationPlayer
 			var walk_anim = "walk" if anim_player.has_animation("walk") else ("Walk" if anim_player.has_animation("Walk") else "Armature|preset_biped_walk")
-			var idle_anim = "Idle" if anim_player.has_animation("Idle") else "Armature|preset_biped_wait"
-			var jump_anim = "jump"
+			var idle_anim = "Idle" if anim_player.has_animation("Idle") else ("idle" if anim_player.has_animation("idle") else "Armature|preset_biped_wait")
+			var jump_anim = "jump" if anim_player.has_animation("jump") else ("Jump" if anim_player.has_animation("Jump") else "fbx_jump")
 			var crouch_idle_anim = "Crouch" if anim_player.has_animation("Crouch") else "crouch_idle"
-			var crouch_walk_anim = "Crouch" if anim_player.has_animation("Crouch") else "crouch_walk"
+			var crouch_walk_anim = "Crouch walk" if anim_player.has_animation("Crouch walk") else ("crouch_walk" if anim_player.has_animation("crouch_walk") else "crouched_walking")
 			
 			# Attempt generic matching if specific ones aren't found
 			for anim_name in anim_player.get_animation_list():
 				var lower = anim_name.to_lower()
-				if "crouch" in lower and "idle" in lower: crouch_idle_anim = anim_name
-				elif "crouch" in lower and "walk" in lower: crouch_walk_anim = anim_name
-				elif "jump" in lower and anim_name != "fbx_jump": jump_anim = anim_name
+				if ("crouch" in lower or "sneak" in lower) and ("walk" in lower or "run" in lower or "move" in lower):
+					crouch_walk_anim = anim_name
+				elif ("crouch" in lower or "sneak" in lower) and "idle" in lower:
+					crouch_idle_anim = anim_name
+				elif lower == "crouch" or lower == "crouching":
+					if not anim_player.has_animation(crouch_idle_anim):
+						crouch_idle_anim = anim_name
+				elif lower == "jump":
+					jump_anim = anim_name
 			
 			var horizontal_speed = Vector2(velocity.x, velocity.z).length()
 			var anim_to_play = ""
@@ -919,12 +929,9 @@ func _physics_process(delta: float) -> void:
 				anim_to_play = action_anim_name
 				action_anim_time_left -= delta
 			elif is_sitting:
-				anim_to_play = "sit" # Fallback if there's a sit anim
+				anim_to_play = "sit down" if anim_player.has_animation("sit down") else "sit"
 			elif not is_on_floor():
-				if anim_player.has_animation(jump_anim):
-					anim_to_play = jump_anim
-				elif anim_player.has_animation("fbx_jump"):
-					anim_to_play = "fbx_jump"
+				anim_to_play = jump_anim
 			elif is_crouching:
 				if horizontal_speed > 0.3:
 					anim_to_play = crouch_walk_anim if anim_player.has_animation(crouch_walk_anim) else walk_anim
@@ -950,8 +957,10 @@ func _physics_process(delta: float) -> void:
 				
 				if anim_to_play == "Open Door":
 					anim_player.speed_scale = 2.5
-				elif anim_to_play == walk_anim or anim_to_play == crouch_walk_anim:
-					anim_player.speed_scale = clamp(horizontal_speed / (6.0 if not is_crouching else 3.0), 0.6, 1.8)
+				elif anim_to_play == crouch_walk_anim:
+					anim_player.speed_scale = clamp(horizontal_speed / 3.0, 0.6, 1.8) * 1.25
+				elif anim_to_play == walk_anim:
+					anim_player.speed_scale = clamp(horizontal_speed / 6.0, 0.6, 1.8)
 				else:
 					anim_player.speed_scale = 1.0
 
