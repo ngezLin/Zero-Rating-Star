@@ -867,14 +867,23 @@ func _physics_process(delta: float) -> void:
 										break
 							scene_inst.queue_free()
 
-			var walk_anim = "Armature|preset_biped_walk"
-			var idle_anim = "Armature|preset_biped_wait"
+			var walk_anim = ""
+			var idle_anim = ""
 			var jump_anim = ""
 			
 			for anim_name in anim_player.get_animation_list():
-				if "jump" in anim_name.to_lower() or anim_name == "fbx_jump":
+				var lower = anim_name.to_lower()
+				if "jump" in lower or anim_name == "fbx_jump":
 					jump_anim = anim_name
-					break
+				elif lower == "walk" or "walk" in lower:
+					walk_anim = anim_name
+				elif lower == "idle" or "wait" in lower or "idle" in lower:
+					idle_anim = anim_name
+			
+			if walk_anim == "":
+				walk_anim = "Walk" if anim_player.has_animation("Walk") else "Armature|preset_biped_walk"
+			if idle_anim == "":
+				idle_anim = "Idle" if anim_player.has_animation("Idle") else "Armature|preset_biped_wait"
 			
 			var horizontal_speed = Vector2(velocity.x, velocity.z).length()
 			var anim_to_play = ""

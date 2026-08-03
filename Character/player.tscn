@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://vqrwssxfaiee" path="res://Character/player.gd" id="1_4flbx"]
 [ext_resource type="Shader" uid="uid://d0f54en4lksci" path="res://shaders/sprint_lines.gdshader" id="2_lines"]
 [ext_resource type="Shader" uid="uid://cykmy3ktcesp4" path="res://shaders/eye_shader.gdshader" id="3_eye_shader"]
-[ext_resource type="PackedScene" uid="uid://dkps6kr4y7b0x" path="res://models/characters/Citruswalk.glb" id="4_citrus_model"]
+[ext_resource type="PackedScene" uid="uid://dskf853flmnhg" path="res://Character/Citrus2.glb" id="4_citrus_model"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_sxki6"]
 radius = 0.4
