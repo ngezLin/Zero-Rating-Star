@@ -400,7 +400,7 @@ func _physics_process(delta: float) -> void:
 
 	# --- Head Bobbing logic ---
 	var horizontal_velocity = Vector3(velocity.x, 0, velocity.z)
-	var is_running = Input.is_action_pressed("sprint") and is_on_floor() and direction.length() > 0.1 and not is_crouching and not is_sneaking and carried_object == null
+	var is_running = Input.is_action_pressed("sprint") and is_on_floor() and direction.length() > 0.1 and not is_sneaking and carried_object == null
 	
 	# Neck pivot calculation: offset the head slightly forward/down when looking down
 	var neck_pivot = default_head_pos - Vector3(0, 0.15, -0.08)
@@ -459,7 +459,7 @@ func _physics_process(delta: float) -> void:
 						right_shoulder.rotation.z = lerp_angle(right_shoulder.rotation.z, 0.15, delta * 12.0)
 				else:
 					# --- WALK ARMS ---
-					var sway_amp = 0.2 if is_crouching else (0.3 if is_sneaking else 0.4)
+					var sway_amp = 0.3 if is_sneaking else 0.4
 					var left_sway = sin(t_bob * BOB_FREQ * 0.5) * sway_amp
 					var right_sway = -left_sway
 					left_shoulder.rotation.x = lerp_angle(left_shoulder.rotation.x, left_sway, delta * 8.0)
@@ -484,9 +484,9 @@ func _physics_process(delta: float) -> void:
 
 		# 2. Foot/Shoe Animation
 		if is_on_floor() and horizontal_velocity.length() > 0.1:
-			var step_amp_y = 0.04 if is_crouching else (0.06 if is_sneaking else 0.08)
-			var step_amp_z = 0.08 if is_crouching else (0.12 if is_sneaking else 0.15)
-			var angle_mult = 0.2 if is_crouching else (0.3 if is_sneaking else 0.4)
+			var step_amp_y = 0.06 if is_sneaking else 0.08
+			var step_amp_z = 0.12 if is_sneaking else 0.15
+			var angle_mult = 0.3 if is_sneaking else 0.4
 			
 			var left_foot_swing = sin(t_bob * BOB_FREQ * 0.5) * step_amp_z
 			var right_foot_swing = -left_foot_swing
