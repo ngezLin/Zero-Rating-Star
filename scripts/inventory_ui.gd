@@ -94,7 +94,7 @@ func _on_inventory_updated() -> void:
 			icon_rect.visible = false
 
 func _update_slot_highlights() -> void:
-	var active_idx = inventory.active_slot_index if inventory else 0
+	var active_idx = inventory.active_slot_index if inventory else -1
 	
 	for i in range(slot_nodes.size()):
 		var slot_panel = slot_nodes[i]

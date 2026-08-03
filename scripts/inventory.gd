@@ -22,9 +22,13 @@ func _ready() -> void:
 			slots[i] = null
 
 func select_slot(index: int) -> void:
-	if index < 0 or index >= max_slots:
+	if index < -1 or index >= max_slots:
 		return
-	if active_slot_index != index:
+	if active_slot_index == index and index != -1:
+		# Toggle off to pure hands mode (-1) if pressing the active slot key again
+		active_slot_index = -1
+		active_slot_changed.emit(active_slot_index)
+	elif active_slot_index != index:
 		active_slot_index = index
 		active_slot_changed.emit(active_slot_index)
 
@@ -42,8 +46,8 @@ func get_active_item():
 	return null
 
 func add_item(item_info: Dictionary) -> bool:
-	# 1. Try to place in active slot if empty
-	if slots[active_slot_index] == null:
+	# 1. Try to place in active slot if valid and empty
+	if active_slot_index >= 0 and active_slot_index < max_slots and slots[active_slot_index] == null:
 		slots[active_slot_index] = item_info
 		inventory_updated.emit()
 		return true
