@@ -298,20 +298,27 @@ text = "🚪 Door Has Been Opened! You can leave the room."
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="DotCrosshair" type="ColorRect" parent="InteractionPromptLayer" unique_id=2345680]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_crosshair_circle"]
+bg_color = Color(1, 1, 1, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_left = 8
+corner_radius_bottom_right = 8
+
+[node name="DotCrosshair" type="Panel" parent="InteractionPromptLayer" unique_id=2345680]
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -3.0
-offset_top = -3.0
-offset_right = 3.0
-offset_bottom = 3.0
+offset_left = -2.4
+offset_top = -2.4
+offset_right = 2.4
+offset_bottom = 2.4
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(1, 1, 1, 0.6)
+theme_override_styleboxes/panel = SubResource("StyleBoxFlat_crosshair_circle")
 
 [node name="ChecklistLabel" type="Label" parent="InteractionPromptLayer" unique_id=2345682]
 visible = false

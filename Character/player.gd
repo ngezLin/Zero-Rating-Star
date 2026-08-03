@@ -32,7 +32,7 @@ var t_bob = 0.0
 @onready var interaction_ray: RayCast3D = $Head/SpringArm3D/Camera3D/InteractionRay
 @onready var carry_pivot: Node3D = $CarryPivot
 @onready var prompt_label: Label = $InteractionPromptLayer/PromptLabel
-@onready var dot_crosshair: ColorRect = $InteractionPromptLayer/DotCrosshair
+@onready var dot_crosshair = $InteractionPromptLayer/DotCrosshair
 @onready var checklist_label: Label = $InteractionPromptLayer/ChecklistLabel
 @onready var wallet_label: Label = $InteractionPromptLayer/WalletLabel
 @onready var mop_tool: Node3D = $BodyMesh/RightShoulder/RightHand/MopTool
@@ -631,14 +631,18 @@ func _physics_process(delta: float) -> void:
 			hovered_mesh.material_overlay = highlight_material
 
 	# Crosshair Feedback: scale and change color when hovering over interactables
-	if can_interact:
-		dot_crosshair.color = Color(0.2, 0.9, 0.3, 0.95) # Vibrant feedback green
-		dot_crosshair.scale = Vector2(1.5, 1.5)
-		dot_crosshair.pivot_offset = Vector2(3, 3)
-	else:
-		dot_crosshair.color = Color(1.0, 1.0, 1.0, 0.5) # Soft translucent white
-		dot_crosshair.scale = Vector2(1.0, 1.0)
-		dot_crosshair.pivot_offset = Vector2(3, 3)
+	if dot_crosshair:
+		var stylebox = dot_crosshair.get_theme_stylebox("panel") as StyleBoxFlat
+		if can_interact:
+			if stylebox:
+				stylebox.bg_color = Color(0.2, 0.9, 0.3, 0.95) # Vibrant feedback green
+			dot_crosshair.scale = Vector2(1.2, 1.2)
+			dot_crosshair.pivot_offset = Vector2(2.4, 2.4)
+		else:
+			if stylebox:
+				stylebox.bg_color = Color(1.0, 1.0, 1.0, 0.6) # Soft translucent white
+			dot_crosshair.scale = Vector2(1.0, 1.0)
+			dot_crosshair.pivot_offset = Vector2(2.4, 2.4)
 
 	# Reset hold timer on previous target if user looks away
 	if ray_target != current_hold_target:
