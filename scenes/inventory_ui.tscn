@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://inventory_ui_scene1"]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/inventory_ui.gd" id="1_inventory_ui"]
 

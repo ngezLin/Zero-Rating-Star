@@ -138,6 +138,13 @@ func _activate_my_camera() -> void:
 	# Setup 4-slot PEAK Inventory UI
 	if inventory:
 		var inv_ui = find_child("InventoryUI", true, false)
+		if not inv_ui and ResourceLoader.exists("res://scenes/inventory_ui.tscn"):
+			var inv_scene = load("res://scenes/inventory_ui.tscn")
+			if inv_scene:
+				inv_ui = inv_scene.instantiate()
+				var prompt_layer = get_node_or_null("InteractionPromptLayer")
+				if prompt_layer:
+					prompt_layer.add_child(inv_ui)
 		if inv_ui and inv_ui.has_method("setup"):
 			inv_ui.setup(inventory)
 	
