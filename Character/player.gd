@@ -355,41 +355,24 @@ func _physics_process(delta: float) -> void:
 
 	was_on_floor = is_on_floor()
 
-	# Handle jump (SPACE key).
-	if (Input.is_action_just_pressed("jump") or Input.is_action_just_pressed("ui_accept")) and is_on_floor():
-		velocity.y = JUMP_VELOCITY
+	# Sneaking state
+	var is_sneaking = Input.is_action_pressed("sneak") and is_on_floor()
 
-	# Determine crouching and sneaking states (supports L2 trigger axis, Circle button, and C key)
-	var is_crouching = (Input.is_action_pressed("crouch") or Input.get_joy_axis(0, JOY_AXIS_TRIGGER_LEFT) > 0.3) and is_on_floor()
-	var is_sneaking = Input.is_action_pressed("sneak") and is_on_floor() and not is_crouching
-
-	# Keep body mesh scale natural when full skeletal crouch animations are active
-	var target_crouch_scale = 1.0
-	body_mesh.scale = Vector3(1.0, target_crouch_scale, 1.0)
-
-	# Lower head position when crouching for camera perspective
-	var target_head_y = default_head_pos.y * 0.65 if is_crouching else default_head_pos.y
-	head.position.y = lerp(head.position.y, target_head_y, delta * 10.0)
-
-	# Adjust collision shape height
-	collision_shape.shape.height = lerp(collision_shape.shape.height, 1.2 if is_crouching else 1.8, delta * 10.0)
+	head.position.y = lerp(head.position.y, default_head_pos.y, delta * 10.0)
+	collision_shape.shape.height = lerp(collision_shape.shape.height, 1.8, delta * 10.0)
 
 	# Get the input direction relative to the player's current look angle
 	var input_dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	
-	# Determine speed based on sneak, crouch, or carrying states
+	# Determine speed based on sneak or carrying states
 	var current_speed = WALK_SPEED
 	if carried_object != null:
 		current_speed = 5.0 # Slow down due to item weight
-		if is_crouching:
-			current_speed = 2.0
-		elif is_sneaking:
+		if is_sneaking:
 			current_speed = 3.2
 	else:
-		if is_crouching:
-			current_speed = CROUCH_SPEED
-		elif is_sneaking:
+		if is_sneaking:
 			current_speed = SNEAK_SPEED
 	
 	if direction:
@@ -402,8 +385,6 @@ func _physics_process(delta: float) -> void:
 	# --- Body Leaning (Velocity & Pitch) & Head Tilt ---
 	var local_vel = global_transform.basis.inverse() * velocity
 	var lean_factor = 0.015 # Normal lean
-	if is_crouching:
-		lean_factor = 0.008 # Dampen lean when crouching
 	var body_target_pitch = (vertical_look * BODY_TILT_AMOUNT) + (local_vel.z * lean_factor)
 	if carried_object != null:
 		body_target_pitch -= 0.12 # Lean backward to simulate weight strain
@@ -818,13 +799,10 @@ func _physics_process(delta: float) -> void:
 			# Discover available animation names from model's AnimationPlayer
 			var walk_anim = ""
 			var idle_anim = ""
-			var jump_anim = ""
 			
 			for anim_name in anim_player.get_animation_list():
 				var lower = anim_name.to_lower()
-				if "jump" in lower or anim_name == "fbx_jump":
-					jump_anim = anim_name
-				elif lower == "walk" or "walk" in lower:
+				if lower == "walk" or "walk" in lower:
 					walk_anim = anim_name
 				elif lower == "idle" or "wait" in lower or "idle" in lower:
 					idle_anim = anim_name
@@ -834,76 +812,10 @@ func _physics_process(delta: float) -> void:
 			if idle_anim == "":
 				idle_anim = "Idle" if anim_player.has_animation("Idle") else "Armature|preset_biped_wait"
 
-			# Automatically import crouch animations from Crouching Idle.fbx and Crouched Walking.fbx
-			if not anim_player.has_meta("crouch_imported"):
-				anim_player.set_meta("crouch_imported", true)
-				
-				# Get exact Skeleton3D node path prefix from target model's walk animation
-				var target_prefix = "Armature/Skeleton3D:"
-				if walk_anim != "" and anim_player.has_animation(walk_anim):
-					var sample_anim = anim_player.get_animation(walk_anim)
-					if sample_anim and sample_anim.get_track_count() > 0:
-						var sample_p = str(sample_anim.track_get_path(0))
-						if ":" in sample_p:
-							target_prefix = sample_p.split(":")[0] + ":"
-
-				var crouch_files = {
-					"crouch_idle": "res://Crouching Idle.fbx",
-					"crouch_walk": "res://Crouched Walking.fbx"
-				}
-				var default_lib = anim_player.get_animation_library("")
-				if not default_lib:
-					default_lib = AnimationLibrary.new()
-					anim_player.add_animation_library("", default_lib)
-
-				for key in crouch_files.keys():
-					var file_path = crouch_files[key]
-					if ResourceLoader.exists(file_path):
-						var scene_inst = load(file_path).instantiate()
-						if scene_inst:
-							var fbx_ap = scene_inst.find_child("AnimationPlayer", true, false) as AnimationPlayer
-							if fbx_ap:
-								for anim_name in fbx_ap.get_animation_list():
-									if anim_name == "RESET":
-										continue
-									var anim_obj = fbx_ap.get_animation(anim_name)
-									if anim_obj:
-										var anim_dup = anim_obj.duplicate()
-										
-										# Strip ParentNode container tracks and map bone tracks to target_prefix
-										for track_idx in range(anim_dup.get_track_count() - 1, -1, -1):
-											var track_path_str = str(anim_dup.track_get_path(track_idx))
-											if ":" in track_path_str:
-												var bone_name = track_path_str.split(":")[1]
-												var new_path = NodePath(target_prefix + bone_name)
-												anim_dup.track_set_path(track_idx, new_path)
-											else:
-												# Remove non-bone scene parent tracks
-												anim_dup.remove_track(track_idx)
-
-										default_lib.add_animation(key, anim_dup)
-										print("[Player] Successfully imported & mapped ", key, " with target prefix: ", target_prefix)
-										break
-							scene_inst.queue_free()
-			
 			var horizontal_speed = Vector2(velocity.x, velocity.z).length()
 			var anim_to_play = ""
 			
-			if not is_on_floor():
-				if jump_anim != "":
-					anim_to_play = jump_anim
-				elif anim_player.has_animation(walk_anim):
-					anim_to_play = walk_anim
-			elif is_crouching:
-				if horizontal_speed > 0.3 and anim_player.has_animation("crouch_walk"):
-					anim_to_play = "crouch_walk"
-				elif anim_player.has_animation("crouch_idle"):
-					anim_to_play = "crouch_idle"
-				elif horizontal_speed > 0.3 and anim_player.has_animation(walk_anim):
-					anim_to_play = walk_anim
-				elif anim_player.has_animation(idle_anim):
-					anim_to_play = idle_anim
-			elif horizontal_speed > 0.3:
+			if horizontal_speed > 0.3:
 				if anim_player.has_animation(walk_anim):
 					anim_to_play = walk_anim
 			else:
@@ -912,7 +824,7 @@ func _physics_process(delta: float) -> void:
 			
 			if anim_to_play != "":
 				var anim = anim_player.get_animation(anim_to_play)
-				if anim and anim_to_play != jump_anim and anim.loop_mode != Animation.LOOP_LINEAR:
+				if anim and anim.loop_mode != Animation.LOOP_LINEAR:
 					var anim_lib = anim_player.get_animation_library("")
 					if anim_lib:
 						anim = anim.duplicate()
@@ -920,16 +832,13 @@ func _physics_process(delta: float) -> void:
 						anim_lib.add_animation(anim_to_play, anim)
 
 				if anim_player.current_animation != anim_to_play or not anim_player.is_playing():
-					anim_player.play(anim_to_play, 0.15 if anim_to_play == jump_anim else 0.2)
+					anim_player.play(anim_to_play, 0.2)
 				
 				if anim_to_play == walk_anim:
 					anim_player.speed_scale = clamp(horizontal_speed / 6.0, 0.6, 1.8)
-				elif anim_to_play == "crouch_walk":
-					anim_player.speed_scale = clamp(horizontal_speed / 2.2, 0.6, 1.5)
 				else:
 					anim_player.speed_scale = 1.0
 
-				# Keep model orientation clean
 				citrus_model.rotation_degrees.x = lerp(citrus_model.rotation_degrees.x, 0.0, delta * 15.0)
 			else:
 				if anim_player.is_playing():
