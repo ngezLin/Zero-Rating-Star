@@ -1,15 +1,14 @@
-[gd_scene load_steps=11 format=3 uid="uid://vgwrcfy1qawf"]
+[gd_scene format=3 uid="uid://vgwrcfy1qawf"]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="1_main_script"]
-[ext_resource type="PackedScene" uid="uid://dhbb68iarv1sk" path="res://Character/player.tscn" id="1_ig7tw"]
+[ext_resource type="Script" uid="uid://c2ypveqrjf55w" path="res://scripts/main.gd" id="1_main_script"]
 [ext_resource type="PackedScene" uid="uid://cb5lwq82218u" path="res://scenes/pickup_box.tscn" id="3_box"]
 [ext_resource type="PackedScene" uid="uid://cau3majdgq2tb" path="res://models/environment/Cthapel.glb" id="5_lquwl"]
 [ext_resource type="Script" path="res://Character/wanderer.gd" id="6_5vw27"]
 [ext_resource type="PackedScene" uid="uid://dkps6kr4y7b0x" path="res://models/characters/Citruswalk.glb" id="7_272bh"]
 [ext_resource type="PackedScene" uid="uid://duf3jhlyuyoug" path="res://scenes/reception_desk.tscn" id="8_reception"]
-[ext_resource type="PackedScene" path="res://scenes/lobby_room.tscn" id="9_lobby_room"]
-[ext_resource type="PackedScene" path="res://scenes/harbor_dock.tscn" id="10_harbor_dock"]
-[ext_resource type="PackedScene" path="res://scenes/hotel_room.tscn" id="11_hotel_room"]
+[ext_resource type="PackedScene" uid="uid://1p3q0654ynhe" path="res://scenes/lobby_room.tscn" id="9_lobby_room"]
+[ext_resource type="PackedScene" uid="uid://c0flrwlx4pmse" path="res://scenes/harbor_dock.tscn" id="10_harbor_dock"]
+[ext_resource type="PackedScene" uid="uid://cq6ajnxw0wau2" path="res://scenes/hotel_room.tscn" id="11_hotel_room"]
 [ext_resource type="PackedScene" path="res://scenes/trash_room.tscn" id="12_trash_room"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ig7tw"]
@@ -36,7 +35,6 @@ height = 3.616
 
 [node name="Main" type="Node3D" unique_id=950373867]
 script = ExtResource("1_main_script")
-player_scene = ExtResource("1_ig7tw")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1051399298]
 environment = SubResource("Environment_h2yge")
@@ -44,7 +42,6 @@ environment = SubResource("Environment_h2yge")
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=178284018]
 transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 35.004734, 0)
 shadow_enabled = true
-
 
 [node name="StaticBody3D" type="StaticBody3D" parent="." unique_id=308933120]
 
