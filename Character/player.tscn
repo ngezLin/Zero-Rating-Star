@@ -103,10 +103,8 @@ shader_parameter/line_color = Color(0, 0, 0, 0.4)
 shader_parameter/inner_radius = 0.3
 shader_parameter/outer_radius = 0.55
 
-
 [node name="Player" type="CharacterBody3D" unique_id=1024966981]
 script = ExtResource("1_4flbx")
-
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=1882599777]
 shape = SubResource("CapsuleShape3D_sxki6")
@@ -114,7 +112,7 @@ shape = SubResource("CapsuleShape3D_sxki6")
 [node name="BodyMesh" type="Node3D" parent="." unique_id=163663497]
 
 [node name="CitrusModel" parent="BodyMesh" unique_id=1472247022 instance=ExtResource("4_citrus_model")]
-transform = Transform3D(-2, 0, -3.019916e-07, 0, 2, 0, 3.019916e-07, 0, -2, 0, -0.9, 0)
+transform = Transform3D(-0.7, 0, -1.0569706e-07, 0, 0.7, 0, 1.0569706e-07, 0, -0.7, 0, -0.9, 0)
 
 [node name="Accessories" type="Node3D" parent="BodyMesh" unique_id=987657]
 
@@ -279,6 +277,7 @@ grow_horizontal = 2
 grow_vertical = 2
 text = "Press [E] to Pick Up"
 horizontal_alignment = 1
+
 [node name="AlertBanner" type="PanelContainer" parent="InteractionPromptLayer" unique_id=987654321]
 visible = false
 anchors_preset = 5
@@ -393,7 +392,7 @@ text = "[6] Empty"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="PauseMenu" type="Control" parent="InteractionPromptLayer" unique_id=987654321]
+[node name="PauseMenu" type="Control" parent="InteractionPromptLayer" unique_id=849029544]
 visible = false
 layout_mode = 3
 anchors_preset = 15
@@ -402,7 +401,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ColorRect" type="ColorRect" parent="InteractionPromptLayer/PauseMenu"]
+[node name="ColorRect" type="ColorRect" parent="InteractionPromptLayer/PauseMenu" unique_id=1545859761]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -411,7 +410,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.05, 0.05, 0.08, 0.75)
 
-[node name="CenterContainer" type="CenterContainer" parent="InteractionPromptLayer/PauseMenu"]
+[node name="CenterContainer" type="CenterContainer" parent="InteractionPromptLayer/PauseMenu" unique_id=178984184]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -419,63 +418,63 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer" unique_id=881179373]
 custom_minimum_size = Vector2(360, 0)
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer" unique_id=1254982584]
 layout_mode = 2
 theme_override_constants/margin_left = 25
 theme_override_constants/margin_top = 25
 theme_override_constants/margin_right = 25
 theme_override_constants/margin_bottom = 25
 
-[node name="VBoxContainer" type="VBoxContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer" unique_id=1232680796]
 layout_mode = 2
 theme_override_constants/separation = 15
 
-[node name="TitleLabel" type="Label" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1416970564]
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "GAME PAUSED"
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1753417820]
 layout_mode = 2
 
-[node name="ResumeButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="ResumeButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=2010907173]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 45)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Resume Shift"
 
-[node name="FullscreenButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="FullscreenButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1515403746]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Toggle Fullscreen (F11)"
 
-[node name="InviteButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="InviteButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1482951944]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Invite Friends (Copy Lobby Code)"
 
-[node name="MainMenuButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="MainMenuButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=936976665]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Exit to Main Menu"
 
-[node name="QuitButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="QuitButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=584347474]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.4, 0.4, 1)
 text = "Quit Game"
 
-[node name="PauseStatusLabel" type="Label" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="PauseStatusLabel" type="Label" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=187212956]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)

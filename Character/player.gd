@@ -815,14 +815,33 @@ func _physics_process(delta: float) -> void:
 									default_lib.add_animation(anim_name, fbx_anim.duplicate())
 						fbx_scene.queue_free()
 			
+			# Discover available animation names from model's AnimationPlayer
+			var walk_anim = ""
+			var idle_anim = ""
+			var jump_anim = ""
+			
+			for anim_name in anim_player.get_animation_list():
+				var lower = anim_name.to_lower()
+				if "jump" in lower or anim_name == "fbx_jump":
+					jump_anim = anim_name
+				elif lower == "walk" or "walk" in lower:
+					walk_anim = anim_name
+				elif lower == "idle" or "wait" in lower or "idle" in lower:
+					idle_anim = anim_name
+			
+			if walk_anim == "":
+				walk_anim = "Walk" if anim_player.has_animation("Walk") else "Armature|preset_biped_walk"
+			if idle_anim == "":
+				idle_anim = "Idle" if anim_player.has_animation("Idle") else "Armature|preset_biped_wait"
+
 			# Automatically import crouch animations from Crouching Idle.fbx and Crouched Walking.fbx
 			if not anim_player.has_meta("crouch_imported"):
 				anim_player.set_meta("crouch_imported", true)
 				
-				# Get exact Skeleton3D node path prefix from CitrusModel walk animation (e.g. "Armature/Skeleton3D:")
+				# Get exact Skeleton3D node path prefix from target model's walk animation
 				var target_prefix = "Armature/Skeleton3D:"
-				if anim_player.has_animation("Armature|preset_biped_walk"):
-					var sample_anim = anim_player.get_animation("Armature|preset_biped_walk")
+				if walk_anim != "" and anim_player.has_animation(walk_anim):
+					var sample_anim = anim_player.get_animation(walk_anim)
 					if sample_anim and sample_anim.get_track_count() > 0:
 						var sample_p = str(sample_anim.track_get_path(0))
 						if ":" in sample_p:
@@ -866,24 +885,6 @@ func _physics_process(delta: float) -> void:
 										print("[Player] Successfully imported & mapped ", key, " with target prefix: ", target_prefix)
 										break
 							scene_inst.queue_free()
-
-			var walk_anim = ""
-			var idle_anim = ""
-			var jump_anim = ""
-			
-			for anim_name in anim_player.get_animation_list():
-				var lower = anim_name.to_lower()
-				if "jump" in lower or anim_name == "fbx_jump":
-					jump_anim = anim_name
-				elif lower == "walk" or "walk" in lower:
-					walk_anim = anim_name
-				elif lower == "idle" or "wait" in lower or "idle" in lower:
-					idle_anim = anim_name
-			
-			if walk_anim == "":
-				walk_anim = "Walk" if anim_player.has_animation("Walk") else "Armature|preset_biped_walk"
-			if idle_anim == "":
-				idle_anim = "Idle" if anim_player.has_animation("Idle") else "Armature|preset_biped_wait"
 			
 			var horizontal_speed = Vector2(velocity.x, velocity.z).length()
 			var anim_to_play = ""
