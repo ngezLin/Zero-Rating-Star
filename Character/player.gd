@@ -40,6 +40,7 @@ var t_bob = 0.0
 @onready var alert_banner: Control = get_node_or_null("InteractionPromptLayer/AlertBanner")
 @onready var alert_label: Label = get_node_or_null("InteractionPromptLayer/AlertBanner/AlertLabel")
 @onready var pause_menu: Control = get_node_or_null("InteractionPromptLayer/PauseMenu")
+@onready var inventory: Inventory = get_node_or_null("Inventory")
 
 var alert_tween: Tween = null
 
@@ -133,6 +134,12 @@ func _activate_my_camera() -> void:
 	# Set interaction raycast range to 4.5 meters for easy cleaning/interacting
 	interaction_ray.target_position = Vector3(0, 0, -4.5)
 	interaction_ray.collision_mask = 0xFFFFFFFF
+	
+	# Setup 4-slot PEAK Inventory UI
+	if inventory:
+		var inv_ui = find_child("InventoryUI", true, false) as InventoryUI
+		if inv_ui:
+			inv_ui.setup(inventory)
 	
 	_add_key_to_action("jump", KEY_SPACE)
 	_add_key_to_action("ui_accept", KEY_SPACE)
@@ -281,6 +288,23 @@ func _unhandled_input(event: InputEvent) -> void:
 		zoom_level = clamp(zoom_level + 0.15, 0.0, 1.0)
 	if event.is_action_pressed("zoom_out"):
 		zoom_level = clamp(zoom_level - 0.15, 0.0, 1.0)
+
+	# --- 4-Slot PEAK Inventory Slot Selection (1, 2, 3, 4 keys or Mouse Scroll) ---
+	if inventory:
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.keycode == KEY_1:
+				inventory.select_slot(0)
+			elif event.keycode == KEY_2:
+				inventory.select_slot(1)
+			elif event.keycode == KEY_3:
+				inventory.select_slot(2)
+			elif event.keycode == KEY_4:
+				inventory.select_slot(3)
+		elif event is InputEventMouseButton and event.pressed:
+			if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+				inventory.previous_slot()
+			elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+				inventory.next_slot()
 
 	# Toggle Flashlight
 	if event.is_action_pressed("toggle_flashlight"):

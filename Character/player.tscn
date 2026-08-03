@@ -4,6 +4,8 @@
 [ext_resource type="Shader" uid="uid://d0f54en4lksci" path="res://shaders/sprint_lines.gdshader" id="2_lines"]
 [ext_resource type="Shader" uid="uid://cykmy3ktcesp4" path="res://shaders/eye_shader.gdshader" id="3_eye_shader"]
 [ext_resource type="PackedScene" uid="uid://dskf853flmnhg" path="res://Character/Citrus2.glb" id="4_citrus_model"]
+[ext_resource type="Script" path="res://scripts/inventory.gd" id="5_inventory"]
+[ext_resource type="PackedScene" path="res://scenes/inventory_ui.tscn" id="6_inventory_ui"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_sxki6"]
 radius = 0.4
@@ -481,3 +483,8 @@ theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
 theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 autowrap_mode = 2
+
+[node name="Inventory" type="Node" parent="." unique_id=987654321]
+script = ExtResource("5_inventory")
+
+[node name="InventoryUI" parent="InteractionPromptLayer" instance=ExtResource("6_inventory_ui")]
