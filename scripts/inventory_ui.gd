@@ -7,14 +7,14 @@ class_name InventoryUI
 @onready var slot_container: HBoxContainer = $MarginContainer/HBoxContainer
 
 var slot_nodes: Array[Control] = []
-var inventory: Inventory = null
+var inventory = null
 
 # Styling colors
 const COLOR_ACTIVE_BORDER = Color(1.0, 0.85, 0.2, 0.95) # Glowing Amber/Gold
 const COLOR_INACTIVE_BORDER = Color(1.0, 1.0, 1.0, 0.25) # Soft translucent
 const COLOR_SLOT_BG = Color(0.08, 0.1, 0.14, 0.75) # Dark glassmorphic background
 
-func setup(p_inventory: Inventory) -> void:
+func setup(p_inventory) -> void:
 	inventory = p_inventory
 	if inventory:
 		inventory.active_slot_changed.connect(_on_active_slot_changed)

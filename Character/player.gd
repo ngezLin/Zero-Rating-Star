@@ -40,7 +40,7 @@ var t_bob = 0.0
 @onready var alert_banner: Control = get_node_or_null("InteractionPromptLayer/AlertBanner")
 @onready var alert_label: Label = get_node_or_null("InteractionPromptLayer/AlertBanner/AlertLabel")
 @onready var pause_menu: Control = get_node_or_null("InteractionPromptLayer/PauseMenu")
-@onready var inventory: Inventory = get_node_or_null("Inventory")
+@onready var inventory = get_node_or_null("Inventory")
 
 var alert_tween: Tween = null
 
@@ -137,8 +137,8 @@ func _activate_my_camera() -> void:
 	
 	# Setup 4-slot PEAK Inventory UI
 	if inventory:
-		var inv_ui = find_child("InventoryUI", true, false) as InventoryUI
-		if inv_ui:
+		var inv_ui = find_child("InventoryUI", true, false)
+		if inv_ui and inv_ui.has_method("setup"):
 			inv_ui.setup(inventory)
 	
 	_add_key_to_action("jump", KEY_SPACE)
