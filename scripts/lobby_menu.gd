@@ -8,6 +8,7 @@ extends Control
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+	UIAnimator.setup_node_buttons(self)
 	GameManager.change_state(GameManager.AppState.LOBBY)
 	
 	ready_button.pressed.connect(_on_ready_pressed)

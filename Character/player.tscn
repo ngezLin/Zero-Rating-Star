@@ -318,6 +318,21 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_styleboxes/panel = SubResource("StyleBoxFlat_crosshair_circle")
 
+[node name="HoldProgressRing" type="Control" parent="InteractionPromptLayer" unique_id=987654999]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -40.0
+offset_top = -40.0
+offset_right = 40.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
 [node name="ChecklistLabel" type="Label" parent="InteractionPromptLayer" unique_id=2345682]
 visible = false
 offset_left = 20.0
@@ -429,6 +444,7 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="PauseMenu" type="Control" parent="InteractionPromptLayer" unique_id=849029544]
+process_mode = 3
 visible = false
 layout_mode = 3
 anchors_preset = 15
@@ -454,67 +470,144 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="PanelContainer" type="PanelContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer" unique_id=881179373]
-custom_minimum_size = Vector2(360, 0)
+[node name="MainPanel" type="PanelContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer" unique_id=881179373]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(380, 0)
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer" unique_id=1254982584]
+[node name="MarginContainer" type="MarginContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer/MainPanel" unique_id=1254982584]
 layout_mode = 2
 theme_override_constants/margin_left = 25
 theme_override_constants/margin_top = 25
 theme_override_constants/margin_right = 25
 theme_override_constants/margin_bottom = 25
 
-[node name="VBoxContainer" type="VBoxContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer" unique_id=1232680796]
+[node name="VBoxContainer" type="VBoxContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer/MainPanel/MarginContainer" unique_id=1232680796]
 layout_mode = 2
-theme_override_constants/separation = 15
+theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1416970564]
+[node name="TitleLabel" type="Label" parent="InteractionPromptLayer/PauseMenu/CenterContainer/MainPanel/MarginContainer/VBoxContainer" unique_id=1416970564]
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
 text = "GAME PAUSED"
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1753417820]
+[node name="HSeparator" type="HSeparator" parent="InteractionPromptLayer/PauseMenu/CenterContainer/MainPanel/MarginContainer/VBoxContainer" unique_id=1753417820]
 layout_mode = 2
 
-[node name="ResumeButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=2010907173]
+[node name="ResumeButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/MainPanel/MarginContainer/VBoxContainer" unique_id=2010907173]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 45)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Resume Shift"
 
-[node name="FullscreenButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1515403746]
+[node name="SettingsButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/MainPanel/MarginContainer/VBoxContainer" unique_id=1515403746]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-text = "Toggle Fullscreen (F11)"
+text = "Settings"
 
-[node name="InviteButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1482951944]
+[node name="InviteButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/MainPanel/MarginContainer/VBoxContainer" unique_id=1482951944]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-text = "Invite Friends (Copy Lobby Code)"
+text = "Copy Lobby Code"
 
-[node name="MainMenuButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=936976665]
+[node name="MainMenuButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/MainPanel/MarginContainer/VBoxContainer" unique_id=936976665]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Exit to Main Menu"
 
-[node name="QuitButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=584347474]
+[node name="QuitButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/MainPanel/MarginContainer/VBoxContainer" unique_id=584347474]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.4, 0.4, 1)
-text = "Quit Game"
+text = "Exit Game"
 
-[node name="PauseStatusLabel" type="Label" parent="InteractionPromptLayer/PauseMenu/CenterContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=187212956]
+[node name="PauseStatusLabel" type="Label" parent="InteractionPromptLayer/PauseMenu/CenterContainer/MainPanel/MarginContainer/VBoxContainer" unique_id=187212956]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
 theme_override_font_sizes/font_size = 12
 horizontal_alignment = 1
 autowrap_mode = 2
+
+[node name="SettingsPanel" type="PanelContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer" unique_id=987654311]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(400, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer/SettingsPanel" unique_id=987654312]
+layout_mode = 2
+theme_override_constants/margin_left = 25
+theme_override_constants/margin_top = 25
+theme_override_constants/margin_right = 25
+theme_override_constants/margin_bottom = 25
+
+[node name="VBoxContainer" type="VBoxContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer/SettingsPanel/MarginContainer" unique_id=987654313]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="SettingsTitle" type="Label" parent="InteractionPromptLayer/PauseMenu/CenterContainer/SettingsPanel/MarginContainer/VBoxContainer" unique_id=987654314]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "SETTINGS"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="InteractionPromptLayer/PauseMenu/CenterContainer/SettingsPanel/MarginContainer/VBoxContainer" unique_id=987654315]
+layout_mode = 2
+
+[node name="FullscreenRow" type="HBoxContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer/SettingsPanel/MarginContainer/VBoxContainer" unique_id=987654316]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="InteractionPromptLayer/PauseMenu/CenterContainer/SettingsPanel/MarginContainer/VBoxContainer/FullscreenRow" unique_id=987654317]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Fullscreen Mode"
+
+[node name="FullscreenToggle" type="CheckButton" parent="InteractionPromptLayer/PauseMenu/CenterContainer/SettingsPanel/MarginContainer/VBoxContainer/FullscreenRow" unique_id=987654318]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="SensRow" type="VBoxContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer/SettingsPanel/MarginContainer/VBoxContainer" unique_id=987654319]
+layout_mode = 2
+
+[node name="SensLabel" type="Label" parent="InteractionPromptLayer/PauseMenu/CenterContainer/SettingsPanel/MarginContainer/VBoxContainer/SensRow" unique_id=987654320]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Mouse Sensitivity: 100%"
+
+[node name="SensSlider" type="HSlider" parent="InteractionPromptLayer/PauseMenu/CenterContainer/SettingsPanel/MarginContainer/VBoxContainer/SensRow" unique_id=987654321]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0005
+max_value = 0.005
+step = 0.0001
+value = 0.002
+
+[node name="VolumeRow" type="VBoxContainer" parent="InteractionPromptLayer/PauseMenu/CenterContainer/SettingsPanel/MarginContainer/VBoxContainer" unique_id=987654322]
+layout_mode = 2
+
+[node name="VolumeLabel" type="Label" parent="InteractionPromptLayer/PauseMenu/CenterContainer/SettingsPanel/MarginContainer/VBoxContainer/VolumeRow" unique_id=987654323]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Master Volume: 100%"
+
+[node name="VolumeSlider" type="HSlider" parent="InteractionPromptLayer/PauseMenu/CenterContainer/SettingsPanel/MarginContainer/VBoxContainer/VolumeRow" unique_id=987654324]
+unique_name_in_owner = true
+layout_mode = 2
+min_value = 0.0
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="SettingsBackButton" type="Button" parent="InteractionPromptLayer/PauseMenu/CenterContainer/SettingsPanel/MarginContainer/VBoxContainer" unique_id=987654325]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+text = "Back to Pause Menu"
 

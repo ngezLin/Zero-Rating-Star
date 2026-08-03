@@ -11,6 +11,7 @@ extends Control
 
 func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+	UIAnimator.setup_node_buttons(self)
 	
 	host_button.pressed.connect(_on_host_pressed)
 	join_button.pressed.connect(_on_join_pressed)

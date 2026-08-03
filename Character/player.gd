@@ -6,7 +6,7 @@ const CROUCH_SPEED = 2.5
 const SPRINT_SPEED = 13.0
 const JUMP_VELOCITY = 11.0
 const GRAVITY_MULTIPLIER = 4.0   # Snappy, non-moon physics!
-const MOUSE_SENSITIVITY = 0.002
+var MOUSE_SENSITIVITY: float = 0.002
 const BODY_TILT_AMOUNT = 0.35    # Exposes body lean percentage (0.35 = 35% of looking pitch)
 
 # Head bobbing constants
@@ -33,6 +33,7 @@ var t_bob = 0.0
 @onready var carry_pivot: Node3D = $CarryPivot
 @onready var prompt_label: Label = $InteractionPromptLayer/PromptLabel
 @onready var dot_crosshair = $InteractionPromptLayer/DotCrosshair
+@onready var hold_ring = get_node_or_null("InteractionPromptLayer/HoldProgressRing")
 @onready var checklist_label: Label = $InteractionPromptLayer/ChecklistLabel
 @onready var wallet_label: Label = $InteractionPromptLayer/WalletLabel
 @onready var rating_label: Label = get_node_or_null("InteractionPromptLayer/RatingLabel")
@@ -97,11 +98,16 @@ func _enter_tree() -> void:
 		print("[Player] _enter_tree: name=", n, " authority set to ", n.to_int())
 
 func _ready() -> void:
+	process_mode = PROCESS_MODE_ALWAYS
 	var n = str(name)
 	if n.is_valid_int():
 		set_multiplayer_authority(n.to_int())
 
 	print("[Player] _ready: name=", name, " authority=", get_multiplayer_authority(), " my_peer=", multiplayer.get_unique_id(), " is_authority=", is_multiplayer_authority())
+
+	if hold_ring and not hold_ring.get_script():
+		if ResourceLoader.exists("res://scripts/hold_progress_ring.gd"):
+			hold_ring.set_script(load("res://scripts/hold_progress_ring.gd"))
 
 	if is_multiplayer_authority():
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
@@ -323,7 +329,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		
 	# Press Escape to open Pause & Settings Menu
 	if event.is_action_pressed("ui_cancel"):
-		toggle_pause_menu()
+		if pause_menu:
+			var settings_panel = pause_menu.get_node_or_null("%SettingsPanel")
+			var main_panel = pause_menu.get_node_or_null("%MainPanel")
+			if settings_panel and settings_panel.visible:
+				settings_panel.visible = false
+				if main_panel: main_panel.visible = true
+			else:
+				toggle_pause_menu()
 			
 	# Toggle perspective (TPS, FPS, Front View) when pressing V
 	if event.is_action_pressed("toggle_perspective"):
@@ -393,6 +406,9 @@ func set_pushing_cart(pushing: bool, cart: Node = null) -> void:
 
 func _physics_process(delta: float) -> void:
 	if not is_multiplayer_authority():
+		return
+
+	if get_tree().paused:
 		return
 
 	if camera and not camera.current:
@@ -685,25 +701,34 @@ func _physics_process(delta: float) -> void:
 		if is_instance_valid(hovered_mesh):
 			hovered_mesh.material_overlay = highlight_material
 
-	# Crosshair Feedback: scale and change color when hovering over interactables
+	# Crosshair Feedback: smooth scale & vibrant color lerp on hover
 	if dot_crosshair:
 		var stylebox = dot_crosshair.get_theme_stylebox("panel") as StyleBoxFlat
+		dot_crosshair.pivot_offset = Vector2(2.4, 2.4)
 		if can_interact:
 			if stylebox:
-				stylebox.bg_color = Color(0.2, 0.9, 0.3, 0.95) # Vibrant feedback green
-			dot_crosshair.scale = Vector2(1.2, 1.2)
-			dot_crosshair.pivot_offset = Vector2(2.4, 2.4)
+				stylebox.bg_color = stylebox.bg_color.lerp(Color(0.2, 0.95, 0.35, 0.95), delta * 15.0)
+			dot_crosshair.scale = dot_crosshair.scale.lerp(Vector2(1.35, 1.35), delta * 15.0)
 		else:
 			if stylebox:
-				stylebox.bg_color = Color(1.0, 1.0, 1.0, 0.6) # Soft translucent white
-			dot_crosshair.scale = Vector2(1.0, 1.0)
-			dot_crosshair.pivot_offset = Vector2(2.4, 2.4)
+				stylebox.bg_color = stylebox.bg_color.lerp(Color(1.0, 1.0, 1.0, 0.6), delta * 15.0)
+			dot_crosshair.scale = dot_crosshair.scale.lerp(Vector2(1.0, 1.0), delta * 15.0)
 
 	# Reset hold timer on previous target if user looks away
 	if ray_target != current_hold_target:
 		if is_instance_valid(current_hold_target) and current_hold_target.has_method("reset_hold"):
 			current_hold_target.reset_hold()
 		current_hold_target = ray_target
+
+	# Radial Hold Progress Ring updates
+	var hold_pct = 0.0
+	if is_instance_valid(ray_target) and ray_target.has_method("process_hold_interaction"):
+		var cur_t = ray_target.get("current_hold_time")
+		var req_t = ray_target.get("hold_time_required")
+		if cur_t != null and req_t != null and req_t > 0.0:
+			hold_pct = cur_t / req_t
+	if hold_ring:
+		hold_ring.set_progress(hold_pct)
 
 	# --- Pickup & Loot Interaction System ---
 	if carried_object == null:
@@ -1013,18 +1038,73 @@ func _setup_pause_menu() -> void:
 	if not pause_menu:
 		return
 	pause_menu.visible = false
+	UIAnimator.setup_node_buttons(pause_menu)
 	var resume_btn = pause_menu.get_node_or_null("%ResumeButton")
-	var fullscreen_btn = pause_menu.get_node_or_null("%FullscreenButton")
+	var settings_btn = pause_menu.get_node_or_null("%SettingsButton")
 	var invite_btn = pause_menu.get_node_or_null("%InviteButton")
 	var menu_btn = pause_menu.get_node_or_null("%MainMenuButton")
 	var quit_btn = pause_menu.get_node_or_null("%QuitButton")
 	
+	var main_panel = pause_menu.get_node_or_null("%MainPanel")
+	var settings_panel = pause_menu.get_node_or_null("%SettingsPanel")
+	var settings_back_btn = pause_menu.get_node_or_null("%SettingsBackButton")
+	
+	var fs_toggle = pause_menu.get_node_or_null("%FullscreenToggle") as CheckButton
+	var sens_slider = pause_menu.get_node_or_null("%SensSlider") as HSlider
+	var sens_label = pause_menu.get_node_or_null("%SensLabel") as Label
+	var vol_slider = pause_menu.get_node_or_null("%VolumeSlider") as HSlider
+	var vol_label = pause_menu.get_node_or_null("%VolumeLabel") as Label
+
 	if resume_btn:
 		resume_btn.pressed.connect(toggle_pause_menu)
-	if fullscreen_btn:
-		fullscreen_btn.pressed.connect(func(): GameManager.toggle_fullscreen())
+	if settings_btn:
+		settings_btn.pressed.connect(func():
+			if main_panel and settings_panel:
+				main_panel.visible = false
+				settings_panel.visible = true
+		)
+	if settings_back_btn:
+		settings_back_btn.pressed.connect(func():
+			if main_panel and settings_panel:
+				settings_panel.visible = false
+				main_panel.visible = true
+		)
 	if invite_btn:
 		invite_btn.pressed.connect(_on_invite_friends_pressed)
+	if menu_btn:
+		menu_btn.pressed.connect(_on_exit_to_main_menu_pressed)
+	if quit_btn:
+		quit_btn.pressed.connect(func():
+			get_tree().paused = false
+			get_tree().quit()
+		)
+
+	# Settings Controls
+	if fs_toggle:
+		fs_toggle.button_pressed = GameManager.is_fullscreen
+		fs_toggle.toggled.connect(func(button_pressed: bool):
+			GameManager.set_fullscreen(button_pressed)
+		)
+
+	if sens_slider:
+		sens_slider.value = MOUSE_SENSITIVITY
+		sens_slider.value_changed.connect(func(val: float):
+			MOUSE_SENSITIVITY = val
+			if sens_label:
+				var pct = int((val / 0.002) * 100)
+				sens_label.text = "Mouse Sensitivity: " + str(pct) + "%"
+		)
+
+	if vol_slider:
+		var bus_idx = AudioServer.get_bus_index("Master")
+		if bus_idx >= 0:
+			vol_slider.value = db_to_linear(AudioServer.get_bus_volume_db(bus_idx))
+		vol_slider.value_changed.connect(func(val: float):
+			if bus_idx >= 0:
+				AudioServer.set_bus_volume_db(bus_idx, linear_to_db(val))
+			if vol_label:
+				vol_label.text = "Master Volume: " + str(int(val * 100)) + "%"
+		)
 	
 	GameManager.wallet_changed.connect(_on_wallet_changed)
 	_on_wallet_changed(GameManager.total_hotel_cash)
@@ -1033,32 +1113,34 @@ func _setup_pause_menu() -> void:
 		GameManager.rating_changed.connect(_on_rating_changed)
 	_on_rating_changed(GameManager.current_hotel_rating)
 
-	if menu_btn:
-		menu_btn.pressed.connect(_on_exit_to_main_menu_pressed)
-	if quit_btn:
-		quit_btn.pressed.connect(func(): get_tree().quit())
-
 func toggle_pause_menu() -> void:
 	if not pause_menu:
 		return
 	pause_menu.visible = not pause_menu.visible
+	var main_panel = pause_menu.get_node_or_null("%MainPanel")
+	var settings_panel = pause_menu.get_node_or_null("%SettingsPanel")
+	if main_panel and settings_panel:
+		main_panel.visible = true
+		settings_panel.visible = false
+
 	if pause_menu.visible:
 		Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
+		get_tree().paused = true
 		var status_lbl = pause_menu.get_node_or_null("%PauseStatusLabel")
 		if status_lbl:
 			var code = NetworkManager.get_lobby_code()
 			status_lbl.text = "Lobby Code: " + code
 	else:
 		Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+		get_tree().paused = false
 
 func _on_invite_friends_pressed() -> void:
 	var code = NetworkManager.get_lobby_code()
 	var invite_info = "Join my Zero-Star Rating shift! Lobby Code: " + code
 	DisplayServer.clipboard_set(code)
-	var status_lbl = pause_menu.get_node_or_null("%PauseStatusLabel")
-	if status_lbl:
-		status_lbl.text = "Copied 6-Digit Lobby Code to clipboard:\n" + code
+	show_alert("📋 Copied Lobby Code (" + code + ") to Clipboard!", 3.0)
 
 func _on_exit_to_main_menu_pressed() -> void:
+	get_tree().paused = false
 	NetworkManager.disconnect_game()
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
