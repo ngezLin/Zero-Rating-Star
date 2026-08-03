@@ -114,7 +114,7 @@ shape = SubResource("CapsuleShape3D_sxki6")
 [node name="BodyMesh" type="Node3D" parent="." unique_id=163663497]
 
 [node name="CitrusModel" parent="BodyMesh" unique_id=1472247022 instance=ExtResource("4_citrus_model")]
-transform = Transform3D(-0.75, 0, -1.1324685e-07, 0, 0.62, 0, 1.1324685e-07, 0, -0.75, 0, -0.9, 0)
+transform = Transform3D(-0.75, 0, -1.1324685e-07, 0, 0.65, 0, 1.1324685e-07, 0, -0.75, 0, -0.9, 0)
 
 [node name="Accessories" type="Node3D" parent="BodyMesh" unique_id=987657]
 
