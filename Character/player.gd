@@ -135,7 +135,17 @@ func _activate_my_camera() -> void:
 	interaction_ray.target_position = Vector3(0, 0, -4.5)
 	interaction_ray.collision_mask = 0xFFFFFFFF
 	
-	# Setup 4-slot PEAK Inventory UI
+	# Setup 4-slot PEAK Inventory Data & UI
+	if not inventory:
+		inventory = get_node_or_null("Inventory")
+		if not inventory and ResourceLoader.exists("res://scripts/inventory.gd"):
+			var inv_script = load("res://scripts/inventory.gd")
+			if inv_script:
+				inventory = Node.new()
+				inventory.name = "Inventory"
+				inventory.set_script(inv_script)
+				add_child(inventory)
+
 	if inventory:
 		var inv_ui = find_child("InventoryUI", true, false)
 		if not inv_ui and ResourceLoader.exists("res://scenes/inventory_ui.tscn"):
