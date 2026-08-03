@@ -5,11 +5,13 @@ enum AppState { MAIN_MENU, LOBBY, IN_SHIFT, SHIFT_SUMMARY }
 signal state_changed(new_state: AppState)
 signal shift_timer_updated(time_left: float)
 signal wallet_changed(new_amount: int)
+signal rating_changed(new_rating: int)
 
 var current_state: AppState = AppState.MAIN_MENU
 var is_fullscreen: bool = true
 var total_hotel_cash: int = 500
 var day_count: int = 1
+var current_hotel_rating: int = 0
 
 var shift_duration: float = 300.0 # 5 minutes shift
 var shift_time_remaining: float = 300.0
@@ -32,6 +34,14 @@ func _input(event: InputEvent) -> void:
 				Input.set_mouse_mode(Input.MOUSE_MODE_CONFINED)
 			else:
 				Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	
+	if event is InputEventKey and event.pressed and not event.echo:
+		if event.physical_keycode == KEY_9:
+			set_rating(0)
+		elif event.physical_keycode == KEY_0:
+			set_rating(5)
+		elif event.physical_keycode == KEY_8:
+			set_rating(4)
 
 func _process(delta: float) -> void:
 	if shift_active and current_state == AppState.IN_SHIFT:
@@ -80,6 +90,17 @@ func deduct_cash(amount: int) -> bool:
 		wallet_changed.emit(total_hotel_cash)
 		return true
 	return false
+
+@rpc("any_peer", "call_local")
+func _sync_rating(stars: int) -> void:
+	current_hotel_rating = stars
+	rating_changed.emit(stars)
+
+func set_rating(stars: int) -> void:
+	if multiplayer.has_multiplayer_peer() and multiplayer.multiplayer_peer.get_connection_status() == MultiplayerPeer.CONNECTION_CONNECTED:
+		rpc("_sync_rating", stars)
+	else:
+		_sync_rating(stars)
 
 func _setup_input_actions() -> void:
 	if not InputMap.has_action("toggle_fullscreen"):

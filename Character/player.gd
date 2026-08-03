@@ -35,6 +35,7 @@ var t_bob = 0.0
 @onready var dot_crosshair = $InteractionPromptLayer/DotCrosshair
 @onready var checklist_label: Label = $InteractionPromptLayer/ChecklistLabel
 @onready var wallet_label: Label = $InteractionPromptLayer/WalletLabel
+@onready var rating_label: Label = get_node_or_null("InteractionPromptLayer/RatingLabel")
 @onready var mop_tool: Node3D = $BodyMesh/RightShoulder/RightHand/MopTool
 @onready var hotbar_container: HBoxContainer = $InteractionPromptLayer/HotbarPanel/HBoxContainer
 @onready var alert_banner: Control = get_node_or_null("InteractionPromptLayer/AlertBanner")
@@ -53,6 +54,10 @@ var is_aiming = false
 var trajectory_dots = []
 var wallet_cash: int = 0
 var active_slot_index: int = 0
+var is_crouching: bool = false
+var is_sitting: bool = false
+var action_anim_name: String = ""
+var action_anim_time_left: float = 0.0
 
 var highlight_material: StandardMaterial3D
 var hovered_mesh: MeshInstance3D = null
@@ -72,6 +77,17 @@ const SPRINT_FOV = 85.0
 enum CameraMode { THIRD_PERSON, FIRST_PERSON, FRONT_VIEW }
 var current_camera_mode = CameraMode.THIRD_PERSON
 var vertical_look = 0.0
+
+func play_action_anim(anim: String, duration: float = 1.0) -> void:
+	action_anim_name = anim
+	action_anim_time_left = duration
+
+func _update_interaction() -> void:
+	# Node name is set to str(peer_id) by main.gd _spawn_player
+	var n = str(name)
+	if n.is_valid_int():
+		set_multiplayer_authority(n.to_int())
+		print("[Player] _enter_tree: name=", n, " authority set to ", n.to_int())
 
 func _enter_tree() -> void:
 	# Node name is set to str(peer_id) by main.gd _spawn_player
@@ -121,6 +137,19 @@ func _sync_state(pos: Vector3, rot: Vector3, head_rot: Vector3, anim_name: Strin
 					ap.speed_scale = anim_speed
 			elif anim_name == "" and ap.is_playing():
 				ap.stop()
+
+func _on_wallet_changed(amount: int) -> void:
+	if wallet_label:
+		wallet_label.text = "$" + str(amount)
+
+func _on_rating_changed(stars: int) -> void:
+	if rating_label:
+		if stars <= 0:
+			rating_label.text = "0 Stars"
+		elif stars >= 5:
+			rating_label.text = "5 Stars"
+		else:
+			rating_label.text = str(stars) + " Stars"
 
 func _activate_my_camera() -> void:
 	if camera:
@@ -398,9 +427,12 @@ func _physics_process(delta: float) -> void:
 
 	# Sneaking state
 	var is_sneaking = Input.is_action_pressed("sneak") and is_on_floor()
+	is_crouching = Input.is_action_pressed("crouch") and is_on_floor()
 
-	head.position.y = lerp(head.position.y, default_head_pos.y, delta * 10.0)
-	collision_shape.shape.height = lerp(collision_shape.shape.height, 1.8, delta * 10.0)
+	head.position.y = lerp(head.position.y, default_head_pos.y - (0.5 if is_crouching else 0.0), delta * 10.0)
+	var target_height = 1.2 if is_crouching else 1.8
+	collision_shape.shape.height = lerp(collision_shape.shape.height, target_height, delta * 10.0)
+	collision_shape.position.y = (collision_shape.shape.height - 1.8) / 2.0
 
 	# Get the input direction relative to the player's current look angle
 	var input_dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
@@ -408,7 +440,9 @@ func _physics_process(delta: float) -> void:
 	
 	# Determine speed based on sneak or carrying states
 	var current_speed = WALK_SPEED
-	if carried_object != null:
+	if is_crouching:
+		current_speed = CROUCH_SPEED
+	elif carried_object != null:
 		current_speed = 5.0 # Slow down due to item weight
 		if is_sneaking:
 			current_speed = 3.2
@@ -441,7 +475,7 @@ func _physics_process(delta: float) -> void:
 
 	# --- Head Bobbing logic ---
 	var horizontal_velocity = Vector3(velocity.x, 0, velocity.z)
-	var is_running = Input.is_action_pressed("sprint") and is_on_floor() and direction.length() > 0.1 and not is_sneaking and carried_object == null
+	var is_running = Input.is_action_pressed("sprint") and is_on_floor() and direction.length() > 0.1 and not is_sneaking and not is_crouching and carried_object == null
 	
 	# Neck pivot calculation: offset the head slightly forward/down when looking down
 	var neck_pivot = default_head_pos - Vector3(0, 0.15, -0.08)
@@ -500,7 +534,7 @@ func _physics_process(delta: float) -> void:
 						right_shoulder.rotation.z = lerp_angle(right_shoulder.rotation.z, 0.15, delta * 12.0)
 				else:
 					# --- WALK ARMS ---
-					var sway_amp = 0.3 if is_sneaking else 0.4
+					var sway_amp = 0.3 if (is_sneaking or is_crouching) else 0.4
 					var left_sway = sin(t_bob * BOB_FREQ * 0.5) * sway_amp
 					var right_sway = -left_sway
 					left_shoulder.rotation.x = lerp_angle(left_shoulder.rotation.x, left_sway, delta * 8.0)
@@ -525,9 +559,9 @@ func _physics_process(delta: float) -> void:
 
 		# 2. Foot/Shoe Animation
 		if is_on_floor() and horizontal_velocity.length() > 0.1:
-			var step_amp_y = 0.06 if is_sneaking else 0.08
-			var step_amp_z = 0.12 if is_sneaking else 0.15
-			var angle_mult = 0.3 if is_sneaking else 0.4
+			var step_amp_y = 0.06 if (is_sneaking or is_crouching) else 0.08
+			var step_amp_z = 0.12 if (is_sneaking or is_crouching) else 0.15
+			var angle_mult = 0.3 if (is_sneaking or is_crouching) else 0.4
 			
 			var left_foot_swing = sin(t_bob * BOB_FREQ * 0.5) * step_amp_z
 			var right_foot_swing = -left_foot_swing
@@ -707,6 +741,12 @@ func _physics_process(delta: float) -> void:
 						prompt_label.visible = true
 					if Input.is_action_just_pressed("interact"):
 						ray_target.interact(self)
+						if ray_target.has_method("get_interaction_prompt"):
+							var prompt = ray_target.get_interaction_prompt().to_lower()
+							if "door" in prompt:
+								play_action_anim("Open Door", 0.4)
+							elif "chair" in prompt or "bed" in prompt or "sit" in prompt:
+								play_action_anim("sit down", 1.5)
 					elif Input.is_action_just_pressed("crouch") and ray_target.has_method("deny_current_guest"):
 						ray_target.deny_current_guest(self)
 			elif ray_target.is_in_group("pickable"):
@@ -746,6 +786,10 @@ func _physics_process(delta: float) -> void:
 			
 			if Input.is_action_just_pressed("interact"):
 				ray_target.interact(self)
+				if ray_target.has_method("get_interaction_prompt"):
+					var p = ray_target.get_interaction_prompt().to_lower()
+					if "door" in p: play_action_anim("Open Door", 0.4)
+					elif "sit" in p or "bed" in p or "chair" in p: play_action_anim("sit down", 1.5)
 		# Otherwise drop carried object on floor if interact button (E) is pressed
 		elif Input.is_action_just_pressed("interact"):
 			is_aiming = false
@@ -819,55 +863,80 @@ func _physics_process(delta: float) -> void:
 				if anim_lib and anim_lib.has_animation("Armature|Armature"):
 					anim_lib.remove_animation("Armature|Armature")
 			
-			# Automatically import jump animations from res://Citrus.fbx if available
+			# Automatically import all animations from FBX files
 			if not anim_player.has_meta("fbx_imported"):
 				anim_player.set_meta("fbx_imported", true)
-				var fbx_path = "res://models/characters/Citrus.fbx"
-				if ResourceLoader.exists(fbx_path):
-					var fbx_scene = load(fbx_path).instantiate()
-					if fbx_scene:
-						var fbx_ap = fbx_scene.find_child("AnimationPlayer", true, false) as AnimationPlayer
-						if fbx_ap:
-							var default_lib = anim_player.get_animation_library("")
-							if not default_lib:
-								default_lib = AnimationLibrary.new()
-								anim_player.add_animation_library("", default_lib)
-							for anim_name in fbx_ap.get_animation_list():
-								if anim_name == "RESET":
-									continue
-								var fbx_anim = fbx_ap.get_animation(anim_name)
-								if fbx_anim:
-									default_lib.add_animation("fbx_jump", fbx_anim.duplicate())
-									default_lib.add_animation(anim_name, fbx_anim.duplicate())
-						fbx_scene.queue_free()
+				var fbx_files = [
+					"res://models/characters/Citrus.fbx",
+					"res://models/characters/Citruswalk.glb",
+					"res://Crouched Walking.fbx",
+					"res://Crouching Idle.fbx",
+					"res://CitrusFix.fbx"
+				]
+				var default_lib = anim_player.get_animation_library("")
+				if not default_lib:
+					default_lib = AnimationLibrary.new()
+					anim_player.add_animation_library("", default_lib)
+				
+				for fbx_path in fbx_files:
+					if ResourceLoader.exists(fbx_path):
+						var fbx_scene = load(fbx_path).instantiate()
+						if fbx_scene:
+							var fbx_ap = fbx_scene.find_child("AnimationPlayer", true, false) as AnimationPlayer
+							if fbx_ap:
+								for anim_name in fbx_ap.get_animation_list():
+									if anim_name == "RESET":
+										continue
+									var fbx_anim = fbx_ap.get_animation(anim_name)
+									if fbx_anim:
+										# We add it with its original name
+										if not default_lib.has_animation(anim_name):
+											default_lib.add_animation(anim_name, fbx_anim.duplicate())
+										# Also add a lowercase, normalized name
+										var clean_name = anim_name.to_lower().replace(" ", "_").replace("|", "_")
+										if not default_lib.has_animation(clean_name):
+											default_lib.add_animation(clean_name, fbx_anim.duplicate())
+							fbx_scene.queue_free()
 			
 			# Discover available animation names from model's AnimationPlayer
-			var walk_anim = ""
-			var idle_anim = ""
+			var walk_anim = "walk" if anim_player.has_animation("walk") else ("Walk" if anim_player.has_animation("Walk") else "Armature|preset_biped_walk")
+			var idle_anim = "Idle" if anim_player.has_animation("Idle") else "Armature|preset_biped_wait"
+			var jump_anim = "jump"
+			var crouch_idle_anim = "Crouch" if anim_player.has_animation("Crouch") else "crouch_idle"
+			var crouch_walk_anim = "Crouch" if anim_player.has_animation("Crouch") else "crouch_walk"
 			
+			# Attempt generic matching if specific ones aren't found
 			for anim_name in anim_player.get_animation_list():
 				var lower = anim_name.to_lower()
-				if lower == "walk" or "walk" in lower:
-					walk_anim = anim_name
-				elif lower == "idle" or "wait" in lower or "idle" in lower:
-					idle_anim = anim_name
+				if "crouch" in lower and "idle" in lower: crouch_idle_anim = anim_name
+				elif "crouch" in lower and "walk" in lower: crouch_walk_anim = anim_name
+				elif "jump" in lower and anim_name != "fbx_jump": jump_anim = anim_name
 			
-			if walk_anim == "":
-				walk_anim = "Walk" if anim_player.has_animation("Walk") else "Armature|preset_biped_walk"
-			if idle_anim == "":
-				idle_anim = "Idle" if anim_player.has_animation("Idle") else "Armature|preset_biped_wait"
-
 			var horizontal_speed = Vector2(velocity.x, velocity.z).length()
 			var anim_to_play = ""
 			
-			if horizontal_speed > 0.3:
-				if anim_player.has_animation(walk_anim):
-					anim_to_play = walk_anim
+			if action_anim_time_left > 0.0:
+				anim_to_play = action_anim_name
+				action_anim_time_left -= delta
+			elif is_sitting:
+				anim_to_play = "sit" # Fallback if there's a sit anim
+			elif not is_on_floor():
+				if anim_player.has_animation(jump_anim):
+					anim_to_play = jump_anim
+				elif anim_player.has_animation("fbx_jump"):
+					anim_to_play = "fbx_jump"
+			elif is_crouching:
+				if horizontal_speed > 0.3:
+					anim_to_play = crouch_walk_anim if anim_player.has_animation(crouch_walk_anim) else walk_anim
+				else:
+					anim_to_play = crouch_idle_anim if anim_player.has_animation(crouch_idle_anim) else idle_anim
 			else:
-				if anim_player.has_animation(idle_anim):
-					anim_to_play = idle_anim
+				if horizontal_speed > 0.3:
+					anim_to_play = walk_anim if anim_player.has_animation(walk_anim) else ""
+				else:
+					anim_to_play = idle_anim if anim_player.has_animation(idle_anim) else ""
 			
-			if anim_to_play != "":
+			if anim_to_play != "" and anim_player.has_animation(anim_to_play):
 				var anim = anim_player.get_animation(anim_to_play)
 				if anim and anim.loop_mode != Animation.LOOP_LINEAR:
 					var anim_lib = anim_player.get_animation_library("")
@@ -879,15 +948,19 @@ func _physics_process(delta: float) -> void:
 				if anim_player.current_animation != anim_to_play or not anim_player.is_playing():
 					anim_player.play(anim_to_play, 0.2)
 				
-				if anim_to_play == walk_anim:
-					anim_player.speed_scale = clamp(horizontal_speed / 6.0, 0.6, 1.8)
+				if anim_to_play == "Open Door":
+					anim_player.speed_scale = 2.5
+				elif anim_to_play == walk_anim or anim_to_play == crouch_walk_anim:
+					anim_player.speed_scale = clamp(horizontal_speed / (6.0 if not is_crouching else 3.0), 0.6, 1.8)
 				else:
 					anim_player.speed_scale = 1.0
 
+				citrus_model.position.y = -1.02
 				citrus_model.rotation_degrees.x = lerp(citrus_model.rotation_degrees.x, 0.0, delta * 15.0)
 			else:
 				if anim_player.is_playing():
 					anim_player.stop()
+				citrus_model.position.y = -1.02
 				citrus_model.rotation_degrees.x = lerp(citrus_model.rotation_degrees.x, 0.0, delta * 15.0)
 
 	move_and_slide()
@@ -943,6 +1016,14 @@ func _setup_pause_menu() -> void:
 		fullscreen_btn.pressed.connect(func(): GameManager.toggle_fullscreen())
 	if invite_btn:
 		invite_btn.pressed.connect(_on_invite_friends_pressed)
+	
+	GameManager.wallet_changed.connect(_on_wallet_changed)
+	_on_wallet_changed(GameManager.total_hotel_cash)
+	
+	if not GameManager.rating_changed.is_connected(_on_rating_changed):
+		GameManager.rating_changed.connect(_on_rating_changed)
+	_on_rating_changed(GameManager.current_hotel_rating)
+
 	if menu_btn:
 		menu_btn.pressed.connect(_on_exit_to_main_menu_pressed)
 	if quit_btn:
