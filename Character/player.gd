@@ -363,12 +363,12 @@ func _physics_process(delta: float) -> void:
 	var is_crouching = (Input.is_action_pressed("crouch") or Input.get_joy_axis(0, JOY_AXIS_TRIGGER_LEFT) > 0.3) and is_on_floor()
 	var is_sneaking = Input.is_action_pressed("sneak") and is_on_floor() and not is_crouching
 
-	# Keep body mesh scale stable (crouch scale if crouching)
-	var target_crouch_scale = 0.65 if is_crouching else 1.0
+	# Keep body mesh scale natural when full skeletal crouch animations are active
+	var target_crouch_scale = 1.0
 	body_mesh.scale = Vector3(1.0, target_crouch_scale, 1.0)
 
-	# Lower head position when crouching
-	var target_head_y = default_head_pos.y * 0.55 if is_crouching else default_head_pos.y
+	# Lower head position when crouching for camera perspective
+	var target_head_y = default_head_pos.y * 0.65 if is_crouching else default_head_pos.y
 	head.position.y = lerp(head.position.y, target_head_y, delta * 10.0)
 
 	# Adjust collision shape height
@@ -436,97 +436,103 @@ func _physics_process(delta: float) -> void:
 	else:
 		head.position = head.position.lerp(base_head_pos, delta * 10.0)
 
-	# --- Hand & Foot Sway Animations ---
-	# 1. Arm/Shoulder Pose/Swing Animation
-	if carried_object != null:
-		if is_aiming:
-			# --- AIMING TO THROW POSE ---
-			# Point both arms straight forward to aim the throw
-			left_shoulder.rotation.x = lerp_angle(left_shoulder.rotation.x, 1.4 + vertical_look, delta * 12.0)
-			left_shoulder.rotation.y = lerp_angle(left_shoulder.rotation.y, -0.2, delta * 12.0)
-			left_shoulder.rotation.z = lerp_angle(left_shoulder.rotation.z, -0.1, delta * 12.0)
-			
-			right_shoulder.rotation.x = lerp_angle(right_shoulder.rotation.x, 1.4 + vertical_look, delta * 12.0)
-			right_shoulder.rotation.y = lerp_angle(right_shoulder.rotation.y, 0.2, delta * 12.0)
-			right_shoulder.rotation.z = lerp_angle(right_shoulder.rotation.z, 0.1, delta * 12.0)
-		else:
-			# --- HOLDING BOX POSE ---
-			# Rotate shoulders forward and inward to hug/hold the box in front of the chest
-			var t_carry = (Time.get_ticks_msec() / 1000.0) * 3.0
-			var carry_bob = sin(t_carry) * 0.05
-			
-			left_shoulder.rotation.x = lerp_angle(left_shoulder.rotation.x, 1.2 + carry_bob, delta * 12.0)
-			left_shoulder.rotation.y = lerp_angle(left_shoulder.rotation.y, -0.5, delta * 12.0)
-			left_shoulder.rotation.z = lerp_angle(left_shoulder.rotation.z, -0.6, delta * 12.0)
-			
-			right_shoulder.rotation.x = lerp_angle(right_shoulder.rotation.x, 1.2 + carry_bob, delta * 12.0)
-			right_shoulder.rotation.y = lerp_angle(right_shoulder.rotation.y, 0.5, delta * 12.0)
-			right_shoulder.rotation.z = lerp_angle(right_shoulder.rotation.z, 0.6, delta * 12.0)
-	else:
-		# --- NORMAL HAND ANIMATIONS (Walk / Sprint / Idle) ---
-		if is_on_floor() and horizontal_velocity.length() > 0.1:
-			if is_running:
-				# --- NARUTO RUN ARMS ---
-				var t_run = (Time.get_ticks_msec() / 1000.0) * 15.0
-				var flutter = sin(t_run) * 0.04
-				left_shoulder.rotation.x = lerp_angle(left_shoulder.rotation.x, -1.85 + flutter, delta * 12.0)
-				left_shoulder.rotation.y = lerp_angle(left_shoulder.rotation.y, 0.1, delta * 12.0)
-				left_shoulder.rotation.z = lerp_angle(left_shoulder.rotation.z, -0.15, delta * 12.0)
+	# --- Hand & Foot Sway Animations (Only for procedural primitive block model) ---
+	var citrus_model = body_mesh.get_node_or_null("CitrusModel")
+	if citrus_model == null:
+		if carried_object != null:
+			if is_aiming:
+				# --- AIMING TO THROW POSE ---
+				left_shoulder.rotation.x = lerp_angle(left_shoulder.rotation.x, 1.4 + vertical_look, delta * 12.0)
+				left_shoulder.rotation.y = lerp_angle(left_shoulder.rotation.y, -0.2, delta * 12.0)
+				left_shoulder.rotation.z = lerp_angle(left_shoulder.rotation.z, -0.1, delta * 12.0)
 				
-				if not flashlight_light.visible:
-					right_shoulder.rotation.x = lerp_angle(right_shoulder.rotation.x, -1.85 - flutter, delta * 12.0)
-					right_shoulder.rotation.y = lerp_angle(right_shoulder.rotation.y, -0.1, delta * 12.0)
-					right_shoulder.rotation.z = lerp_angle(right_shoulder.rotation.z, 0.15, delta * 12.0)
+				right_shoulder.rotation.x = lerp_angle(right_shoulder.rotation.x, 1.4 + vertical_look, delta * 12.0)
+				right_shoulder.rotation.y = lerp_angle(right_shoulder.rotation.y, 0.2, delta * 12.0)
+				right_shoulder.rotation.z = lerp_angle(right_shoulder.rotation.z, 0.1, delta * 12.0)
 			else:
-				# --- WALK ARMS ---
-				var sway_amp = 0.2 if is_crouching else (0.3 if is_sneaking else 0.4)
-				var left_sway = sin(t_bob * BOB_FREQ * 0.5) * sway_amp
-				var right_sway = -left_sway
-				left_shoulder.rotation.x = lerp_angle(left_shoulder.rotation.x, left_sway, delta * 8.0)
-				left_shoulder.rotation.z = lerp_angle(left_shoulder.rotation.z, -0.15 - abs(left_sway * 0.2), delta * 8.0)
-				left_shoulder.rotation.y = lerp_angle(left_shoulder.rotation.y, left_sway * 0.3, delta * 8.0)
+				# --- HOLDING BOX POSE ---
+				var t_carry = (Time.get_ticks_msec() / 1000.0) * 3.0
+				var carry_bob = sin(t_carry) * 0.05
 				
-				if not flashlight_light.visible:
-					right_shoulder.rotation.x = lerp_angle(right_shoulder.rotation.x, right_sway, delta * 8.0)
-					right_shoulder.rotation.z = lerp_angle(right_shoulder.rotation.z, 0.15 + abs(right_sway * 0.2), delta * 8.0)
-					right_shoulder.rotation.y = lerp_angle(right_shoulder.rotation.y, right_sway * 0.3, delta * 8.0)
+				left_shoulder.rotation.x = lerp_angle(left_shoulder.rotation.x, 1.2 + carry_bob, delta * 12.0)
+				left_shoulder.rotation.y = lerp_angle(left_shoulder.rotation.y, -0.5, delta * 12.0)
+				left_shoulder.rotation.z = lerp_angle(left_shoulder.rotation.z, -0.6, delta * 12.0)
+				
+				right_shoulder.rotation.x = lerp_angle(right_shoulder.rotation.x, 1.2 + carry_bob, delta * 12.0)
+				right_shoulder.rotation.y = lerp_angle(right_shoulder.rotation.y, 0.5, delta * 12.0)
+				right_shoulder.rotation.z = lerp_angle(right_shoulder.rotation.z, 0.6, delta * 12.0)
 		else:
-			# --- IDLE ARMS ---
-			left_shoulder.rotation = left_shoulder.rotation.lerp(Vector3.ZERO, delta * 8.0)
-			if not flashlight_light.visible:
-				right_shoulder.rotation = right_shoulder.rotation.lerp(Vector3.ZERO, delta * 8.0)
-				
-		# --- FLASHLIGHT HOLDING POSE (Overrides right arm if active) ---
-		if flashlight_light.visible and not is_aiming:
-			right_shoulder.rotation.x = lerp_angle(right_shoulder.rotation.x, 1.5 + vertical_look, delta * 12.0)
-			right_shoulder.rotation.y = lerp_angle(right_shoulder.rotation.y, 0.0, delta * 12.0)
-			right_shoulder.rotation.z = lerp_angle(right_shoulder.rotation.z, 0.0, delta * 12.0)
+			# --- NORMAL HAND ANIMATIONS (Walk / Sprint / Idle) ---
+			if is_on_floor() and horizontal_velocity.length() > 0.1:
+				if is_running:
+					# --- NARUTO RUN ARMS ---
+					var t_run = (Time.get_ticks_msec() / 1000.0) * 15.0
+					var flutter = sin(t_run) * 0.04
+					left_shoulder.rotation.x = lerp_angle(left_shoulder.rotation.x, -1.85 + flutter, delta * 12.0)
+					left_shoulder.rotation.y = lerp_angle(left_shoulder.rotation.y, 0.1, delta * 12.0)
+					left_shoulder.rotation.z = lerp_angle(left_shoulder.rotation.z, -0.15, delta * 12.0)
+					
+					if not flashlight_light.visible:
+						right_shoulder.rotation.x = lerp_angle(right_shoulder.rotation.x, -1.85 - flutter, delta * 12.0)
+						right_shoulder.rotation.y = lerp_angle(right_shoulder.rotation.y, -0.1, delta * 12.0)
+						right_shoulder.rotation.z = lerp_angle(right_shoulder.rotation.z, 0.15, delta * 12.0)
+				else:
+					# --- WALK ARMS ---
+					var sway_amp = 0.2 if is_crouching else (0.3 if is_sneaking else 0.4)
+					var left_sway = sin(t_bob * BOB_FREQ * 0.5) * sway_amp
+					var right_sway = -left_sway
+					left_shoulder.rotation.x = lerp_angle(left_shoulder.rotation.x, left_sway, delta * 8.0)
+					left_shoulder.rotation.z = lerp_angle(left_shoulder.rotation.z, -0.15 - abs(left_sway * 0.2), delta * 8.0)
+					left_shoulder.rotation.y = lerp_angle(left_shoulder.rotation.y, left_sway * 0.3, delta * 8.0)
+					
+					if not flashlight_light.visible:
+						right_shoulder.rotation.x = lerp_angle(right_shoulder.rotation.x, right_sway, delta * 8.0)
+						right_shoulder.rotation.z = lerp_angle(right_shoulder.rotation.z, 0.15 + abs(right_sway * 0.2), delta * 8.0)
+						right_shoulder.rotation.y = lerp_angle(right_shoulder.rotation.y, right_sway * 0.3, delta * 8.0)
+			else:
+				# --- IDLE ARMS ---
+				left_shoulder.rotation = left_shoulder.rotation.lerp(Vector3.ZERO, delta * 8.0)
+				if not flashlight_light.visible:
+					right_shoulder.rotation = right_shoulder.rotation.lerp(Vector3.ZERO, delta * 8.0)
+					
+			# --- FLASHLIGHT HOLDING POSE (Overrides right arm if active) ---
+			if flashlight_light.visible and not is_aiming:
+				right_shoulder.rotation.x = lerp_angle(right_shoulder.rotation.x, 1.5 + vertical_look, delta * 12.0)
+				right_shoulder.rotation.y = lerp_angle(right_shoulder.rotation.y, 0.0, delta * 12.0)
+				right_shoulder.rotation.z = lerp_angle(right_shoulder.rotation.z, 0.0, delta * 12.0)
 
-	# 2. Foot/Shoe Animation
-	if is_on_floor() and horizontal_velocity.length() > 0.1:
-		var step_amp_y = 0.04 if is_crouching else (0.06 if is_sneaking else 0.08)
-		var step_amp_z = 0.08 if is_crouching else (0.12 if is_sneaking else 0.15)
-		var angle_mult = 0.2 if is_crouching else (0.3 if is_sneaking else 0.4)
-		
-		var left_foot_swing = sin(t_bob * BOB_FREQ * 0.5) * step_amp_z
-		var right_foot_swing = -left_foot_swing
-		
-		left_foot.position.z = default_left_foot_pos.z + left_foot_swing
-		right_foot.position.z = default_right_foot_pos.z + right_foot_swing
-		
-		var left_lift = max(0.0, cos(t_bob * BOB_FREQ * 0.5)) * step_amp_y
-		var right_lift = max(0.0, -cos(t_bob * BOB_FREQ * 0.5)) * step_amp_y
-		
-		left_foot.position.y = default_left_foot_pos.y + left_lift
-		right_foot.position.y = default_right_foot_pos.y + right_lift
-		
-		left_foot.rotation.x = deg_to_rad(-90) + (left_foot_swing * angle_mult)
-		right_foot.rotation.x = deg_to_rad(-90) + (right_foot_swing * angle_mult)
+		# 2. Foot/Shoe Animation
+		if is_on_floor() and horizontal_velocity.length() > 0.1:
+			var step_amp_y = 0.04 if is_crouching else (0.06 if is_sneaking else 0.08)
+			var step_amp_z = 0.08 if is_crouching else (0.12 if is_sneaking else 0.15)
+			var angle_mult = 0.2 if is_crouching else (0.3 if is_sneaking else 0.4)
+			
+			var left_foot_swing = sin(t_bob * BOB_FREQ * 0.5) * step_amp_z
+			var right_foot_swing = -left_foot_swing
+			
+			left_foot.position.z = default_left_foot_pos.z + left_foot_swing
+			right_foot.position.z = default_right_foot_pos.z + right_foot_swing
+			
+			var left_lift = max(0.0, cos(t_bob * BOB_FREQ * 0.5)) * step_amp_y
+			var right_lift = max(0.0, -cos(t_bob * BOB_FREQ * 0.5)) * step_amp_y
+			
+			left_foot.position.y = default_left_foot_pos.y + left_lift
+			right_foot.position.y = default_right_foot_pos.y + right_lift
+			
+			left_foot.rotation.x = deg_to_rad(-90) + (left_foot_swing * angle_mult)
+			right_foot.rotation.x = deg_to_rad(-90) + (right_foot_swing * angle_mult)
 	else:
-		left_foot.position = left_foot.position.lerp(default_left_foot_pos, delta * 8.0)
-		right_foot.position = right_foot.position.lerp(default_right_foot_pos, delta * 8.0)
-		left_foot.rotation = left_foot.rotation.lerp(Vector3(-PI/2, 0, 0), delta * 8.0)
-		right_foot.rotation = right_foot.rotation.lerp(Vector3(-PI/2, 0, 0), delta * 8.0)
+		# Reset procedural limbs so 3D Citrus skeleton handles all body poses cleanly
+		if is_instance_valid(left_foot):
+			left_foot.position = default_left_foot_pos
+			left_foot.rotation = Vector3(deg_to_rad(-90), 0, 0)
+		if is_instance_valid(right_foot):
+			right_foot.position = default_right_foot_pos
+			right_foot.rotation = Vector3(deg_to_rad(-90), 0, 0)
+		if is_instance_valid(left_shoulder):
+			left_shoulder.rotation = Vector3.ZERO
+		if is_instance_valid(right_shoulder) and not flashlight_light.visible:
+			right_shoulder.rotation = Vector3.ZERO
 
 	# --- Sprint Camera & Screen Effect logic ---
 	var target_intensity = 1.0 if is_running else 0.0
@@ -568,8 +574,18 @@ func _physics_process(delta: float) -> void:
 	spring_arm.rotation.y = target_spring_yaw
 	head.rotation.x = target_head_pitch
 	
-	# Dynamically show/hide the 3D Citrus character model depending on perspective
-	var citrus_model = body_mesh.get_node_or_null("CitrusModel")
+	# --- 3D Character Head Tilt (Look Up / Down with Camera) ---
+	if citrus_model and current_camera_mode != CameraMode.FIRST_PERSON:
+		var skel = citrus_model.find_child("Skeleton3D", true, false) as Skeleton3D
+		if skel:
+			var head_b = skel.find_bone("Head")
+			if head_b != -1:
+				var head_tilt = clamp(-vertical_look * 0.5, deg_to_rad(-45), deg_to_rad(45))
+				var tilt_quat = Quaternion(Vector3(1, 0, 0), head_tilt)
+				var rest_rot = skel.get_bone_rest(head_b).basis.get_rotation_quaternion()
+				skel.set_bone_pose_rotation(head_b, rest_rot * tilt_quat)
+
+	# Dynamically show/hide 3D Citrus model in first-person mode
 	if current_camera_mode == CameraMode.FIRST_PERSON:
 		camera.cull_mask = 1048573 # Hide layer 2 (eyes) to prevent clipping
 		if citrus_model:
@@ -799,6 +815,58 @@ func _physics_process(delta: float) -> void:
 									default_lib.add_animation(anim_name, fbx_anim.duplicate())
 						fbx_scene.queue_free()
 			
+			# Automatically import crouch animations from Crouching Idle.fbx and Crouched Walking.fbx
+			if not anim_player.has_meta("crouch_imported"):
+				anim_player.set_meta("crouch_imported", true)
+				
+				# Get exact Skeleton3D node path prefix from CitrusModel walk animation (e.g. "Armature/Skeleton3D:")
+				var target_prefix = "Armature/Skeleton3D:"
+				if anim_player.has_animation("Armature|preset_biped_walk"):
+					var sample_anim = anim_player.get_animation("Armature|preset_biped_walk")
+					if sample_anim and sample_anim.get_track_count() > 0:
+						var sample_p = str(sample_anim.track_get_path(0))
+						if ":" in sample_p:
+							target_prefix = sample_p.split(":")[0] + ":"
+
+				var crouch_files = {
+					"crouch_idle": "res://Crouching Idle.fbx",
+					"crouch_walk": "res://Crouched Walking.fbx"
+				}
+				var default_lib = anim_player.get_animation_library("")
+				if not default_lib:
+					default_lib = AnimationLibrary.new()
+					anim_player.add_animation_library("", default_lib)
+
+				for key in crouch_files.keys():
+					var file_path = crouch_files[key]
+					if ResourceLoader.exists(file_path):
+						var scene_inst = load(file_path).instantiate()
+						if scene_inst:
+							var fbx_ap = scene_inst.find_child("AnimationPlayer", true, false) as AnimationPlayer
+							if fbx_ap:
+								for anim_name in fbx_ap.get_animation_list():
+									if anim_name == "RESET":
+										continue
+									var anim_obj = fbx_ap.get_animation(anim_name)
+									if anim_obj:
+										var anim_dup = anim_obj.duplicate()
+										
+										# Strip ParentNode container tracks and map bone tracks to target_prefix
+										for track_idx in range(anim_dup.get_track_count() - 1, -1, -1):
+											var track_path_str = str(anim_dup.track_get_path(track_idx))
+											if ":" in track_path_str:
+												var bone_name = track_path_str.split(":")[1]
+												var new_path = NodePath(target_prefix + bone_name)
+												anim_dup.track_set_path(track_idx, new_path)
+											else:
+												# Remove non-bone scene parent tracks
+												anim_dup.remove_track(track_idx)
+
+										default_lib.add_animation(key, anim_dup)
+										print("[Player] Successfully imported & mapped ", key, " with target prefix: ", target_prefix)
+										break
+							scene_inst.queue_free()
+
 			var walk_anim = "Armature|preset_biped_walk"
 			var idle_anim = "Armature|preset_biped_wait"
 			var jump_anim = ""
@@ -816,6 +884,15 @@ func _physics_process(delta: float) -> void:
 					anim_to_play = jump_anim
 				elif anim_player.has_animation(walk_anim):
 					anim_to_play = walk_anim
+			elif is_crouching:
+				if horizontal_speed > 0.3 and anim_player.has_animation("crouch_walk"):
+					anim_to_play = "crouch_walk"
+				elif anim_player.has_animation("crouch_idle"):
+					anim_to_play = "crouch_idle"
+				elif horizontal_speed > 0.3 and anim_player.has_animation(walk_anim):
+					anim_to_play = walk_anim
+				elif anim_player.has_animation(idle_anim):
+					anim_to_play = idle_anim
 			elif horizontal_speed > 0.3:
 				if anim_player.has_animation(walk_anim):
 					anim_to_play = walk_anim
@@ -833,15 +910,21 @@ func _physics_process(delta: float) -> void:
 						anim_lib.add_animation(anim_to_play, anim)
 
 				if anim_player.current_animation != anim_to_play or not anim_player.is_playing():
-					anim_player.play(anim_to_play, 0.15 if anim_to_play == jump_anim else 0.25)
+					anim_player.play(anim_to_play, 0.15 if anim_to_play == jump_anim else 0.2)
 				
 				if anim_to_play == walk_anim:
 					anim_player.speed_scale = clamp(horizontal_speed / 6.0, 0.6, 1.8)
+				elif anim_to_play == "crouch_walk":
+					anim_player.speed_scale = clamp(horizontal_speed / 2.2, 0.6, 1.5)
 				else:
 					anim_player.speed_scale = 1.0
+
+				# Keep model orientation clean
+				citrus_model.rotation_degrees.x = lerp(citrus_model.rotation_degrees.x, 0.0, delta * 15.0)
 			else:
 				if anim_player.is_playing():
 					anim_player.stop()
+				citrus_model.rotation_degrees.x = lerp(citrus_model.rotation_degrees.x, 0.0, delta * 15.0)
 
 	move_and_slide()
 	
