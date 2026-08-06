@@ -333,6 +333,57 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
+[node name="EmoteWheel" type="Control" parent="InteractionPromptLayer" unique_id=987654888]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -110.0
+offset_top = -150.0
+offset_right = 110.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="EmoteWheelBG" type="PanelContainer" parent="InteractionPromptLayer/EmoteWheel" unique_id=987654889]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="InteractionPromptLayer/EmoteWheel/EmoteWheelBG" unique_id=987654890]
+layout_mode = 2
+theme_override_constants/margin_left = 15
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 15
+theme_override_constants/margin_bottom = 15
+
+[node name="VBoxContainer" type="VBoxContainer" parent="InteractionPromptLayer/EmoteWheel/EmoteWheelBG/MarginContainer" unique_id=987654891]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="TopEmoteLabel" type="Label" parent="InteractionPromptLayer/EmoteWheel/EmoteWheelBG/MarginContainer/VBoxContainer" unique_id=987654892]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
+theme_override_font_sizes/font_size = 18
+text = "⬆️ [TOP] A-Stop"
+horizontal_alignment = 1
+
+[node name="HintLabel" type="Label" parent="InteractionPromptLayer/EmoteWheel/EmoteWheelBG/MarginContainer/VBoxContainer" unique_id=987654893]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 0.8)
+theme_override_font_sizes/font_size = 12
+text = "Drag Mouse UP & Release [R]"
+horizontal_alignment = 1
+
 [node name="ChecklistLabel" type="Label" parent="InteractionPromptLayer" unique_id=2345682]
 visible = false
 offset_left = 20.0

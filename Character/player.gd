@@ -42,9 +42,11 @@ var t_bob = 0.0
 @onready var alert_banner: Control = get_node_or_null("InteractionPromptLayer/AlertBanner")
 @onready var alert_label: Label = get_node_or_null("InteractionPromptLayer/AlertBanner/AlertLabel")
 @onready var pause_menu: Control = get_node_or_null("InteractionPromptLayer/PauseMenu")
+@onready var emote_wheel: Control = get_node_or_null("InteractionPromptLayer/EmoteWheel")
 @onready var inventory = get_node_or_null("Inventory")
 
 var alert_tween: Tween = null
+var emote_drag_y: float = 0.0
 
 @onready var default_capsule_height: float = collision_shape.shape.height
 @onready var default_body_mesh_height: float = 1.8 # Standard capsule mesh height
@@ -56,6 +58,8 @@ var trajectory_dots = []
 var wallet_cash: int = 0
 var active_slot_index: int = 0
 var is_crouching: bool = false
+
+var inventory_storage: Node3D
 var is_sitting: bool = false
 var action_anim_name: String = ""
 var action_anim_time_left: float = 0.0
@@ -78,6 +82,11 @@ const SPRINT_FOV = 85.0
 enum CameraMode { THIRD_PERSON, FIRST_PERSON, FRONT_VIEW }
 var current_camera_mode = CameraMode.THIRD_PERSON
 var vertical_look = 0.0
+var current_head_pitch: float = 0.0
+var blink_timer: float = 3.0
+var blink_duration: float = 0.0
+var landing_squash: float = 0.0
+var prev_vel_y: float = 0.0
 
 func play_action_anim(anim: String, duration: float = 1.0) -> void:
 	action_anim_name = anim
@@ -171,6 +180,12 @@ func _activate_my_camera() -> void:
 	interaction_ray.collision_mask = 0xFFFFFFFF
 	
 	# Setup 4-slot PEAK Inventory Data & UI
+	if not inventory_storage:
+		inventory_storage = Node3D.new()
+		inventory_storage.name = "InventoryStorage"
+		add_child(inventory_storage)
+		inventory_storage.visible = false
+
 	if not inventory:
 		inventory = get_node_or_null("Inventory")
 		if not inventory and ResourceLoader.exists("res://scripts/inventory.gd"):
@@ -182,6 +197,9 @@ func _activate_my_camera() -> void:
 				add_child(inventory)
 
 	if inventory:
+		if not inventory.active_slot_changed.is_connected(_on_inventory_active_slot_changed):
+			inventory.active_slot_changed.connect(_on_inventory_active_slot_changed)
+			
 		var inv_ui = find_child("InventoryUI", true, false)
 		if not inv_ui and ResourceLoader.exists("res://scenes/inventory_ui.tscn"):
 			var inv_scene = load("res://scenes/inventory_ui.tscn")
@@ -202,6 +220,7 @@ func _activate_my_camera() -> void:
 	_add_key_to_action("sprint", KEY_SHIFT)
 	_add_key_to_action("sneak", KEY_CTRL)
 	_add_key_to_action("crouch", KEY_C)
+	_add_key_to_action("emote", KEY_R)
 	_add_key_to_action("toggle_perspective", KEY_V)
 	_add_key_to_action("interact", KEY_E)
 	_add_key_to_action("toggle_flashlight", KEY_F)
@@ -236,7 +255,8 @@ func _activate_my_camera() -> void:
 	highlight_material.transparency = StandardMaterial3D.TRANSPARENCY_ALPHA
 	
 	# Initialize hotbar selection
-	_select_slot(0)
+	if inventory:
+		inventory.select_slot(0)
 	
 	# Create trajectory dots programmatically
 	for i in range(15):
@@ -326,6 +346,37 @@ func _unhandled_input(event: InputEvent) -> void:
 		rotate_y(-event.relative.x * MOUSE_SENSITIVITY)
 		vertical_look -= event.relative.y * MOUSE_SENSITIVITY
 		vertical_look = clamp(vertical_look, deg_to_rad(-89), deg_to_rad(89))
+		
+		if Input.is_action_pressed("emote"):
+			emote_drag_y += event.relative.y
+
+	# Handle Emote Wheel [R] Key Hold & Drag
+	if event.is_action_pressed("emote"):
+		emote_drag_y = 0.0
+		if emote_wheel:
+			emote_wheel.visible = true
+			var top_lbl = emote_wheel.get_node_or_null("%TopEmoteLabel") as Label
+			if top_lbl:
+				top_lbl.text = "⬆️ [TOP] A-Stop"
+				top_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+
+	if Input.is_action_pressed("emote") and emote_wheel and emote_wheel.visible:
+		var top_lbl = emote_wheel.get_node_or_null("%TopEmoteLabel") as Label
+		if top_lbl:
+			if emote_drag_y < -12.0:
+				top_lbl.text = "✋ [SELECTED] A-Stop"
+				top_lbl.add_theme_color_override("font_color", Color(0.2, 0.95, 0.35))
+			else:
+				top_lbl.text = "⬆️ [TOP] A-Stop"
+				top_lbl.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
+
+	if event.is_action_released("emote"):
+		if emote_wheel:
+			emote_wheel.visible = false
+		if emote_drag_y < -12.0:
+			play_action_anim("A-Stop", 2.5)
+			show_alert("✋ Emote: A-Stop!", 2.5)
+		emote_drag_y = 0.0
 		
 	# Press Escape to open Pause & Settings Menu
 	if event.is_action_pressed("ui_cancel"):
@@ -443,6 +494,10 @@ func _physics_process(delta: float) -> void:
 	if Input.is_action_just_pressed("jump") and is_on_floor() and not is_crouching:
 		velocity.y = JUMP_VELOCITY
 
+	var just_landed = is_on_floor() and not was_on_floor
+	if just_landed and prev_vel_y < -3.0:
+		landing_squash = clamp(abs(prev_vel_y) * 0.02, 0.05, 0.22)
+	prev_vel_y = velocity.y
 	was_on_floor = is_on_floor()
 
 	# Sneaking state
@@ -458,10 +513,13 @@ func _physics_process(delta: float) -> void:
 	var input_dir := Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
 	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	
-	# Determine speed based on sneak or carrying states
+	# Determine speed based on sneak, sprint, or carrying states
+	var is_sprinting = Input.is_action_pressed("sprint") and is_on_floor() and direction.length() > 0.1 and not is_sneaking and not is_crouching and carried_object == null
 	var current_speed = WALK_SPEED
 	if is_crouching:
 		current_speed = CROUCH_SPEED
+	elif is_sprinting:
+		current_speed = SPRINT_SPEED
 	elif carried_object != null:
 		current_speed = 5.0 # Slow down due to item weight
 		if is_sneaking:
@@ -477,7 +535,7 @@ func _physics_process(delta: float) -> void:
 		velocity.x = move_toward(velocity.x, 0, WALK_SPEED)
 		velocity.z = move_toward(velocity.z, 0, WALK_SPEED)
 
-	# --- Body Leaning (Velocity & Pitch) & Head Tilt ---
+	# --- Body Leaning (Velocity & Pitch) & Landing Squash ---
 	var local_vel = global_transform.basis.inverse() * velocity
 	var lean_factor = 0.015 # Normal lean
 	var body_target_pitch = (vertical_look * BODY_TILT_AMOUNT) + (local_vel.z * lean_factor)
@@ -487,6 +545,12 @@ func _physics_process(delta: float) -> void:
 	
 	body_mesh.rotation.x = lerp_angle(body_mesh.rotation.x, body_target_pitch, delta * 10.0)
 	body_mesh.rotation.z = lerp_angle(body_mesh.rotation.z, body_target_roll, delta * 10.0)
+
+	# Dynamic Landing Squash & Stretch Physics
+	landing_squash = move_toward(landing_squash, 0.0, delta * 3.5)
+	var squash_y = 1.0 - landing_squash
+	var stretch_xz = 1.0 + (landing_squash * 0.5)
+	body_mesh.scale = Vector3(stretch_xz, squash_y, stretch_xz)
 
 	# Update CarryPivot to follow body mesh rotation/position without inheriting its squash & stretch scale
 	var unscaled_basis = body_mesh.global_transform.basis.orthonormalized()
@@ -671,7 +735,16 @@ func _physics_process(delta: float) -> void:
 		if citrus_model:
 			citrus_model.visible = true
 
-	# --- Eye tracking (look at camera in Front View) ---
+	# --- Eyelid Micro-Blinking & Eye Tracking ---
+	blink_timer -= delta
+	if blink_timer <= 0.0:
+		blink_duration = 0.12 # 120ms blink
+		blink_timer = randf_range(2.5, 6.0)
+	
+	var is_blinking = blink_duration > 0.0
+	if is_blinking:
+		blink_duration -= delta
+
 	if current_camera_mode == CameraMode.FRONT_VIEW and is_instance_valid(left_eye) and is_instance_valid(right_eye):
 		var target_pos = camera.global_position
 		left_eye.look_at(target_pos, Vector3.UP)
@@ -679,6 +752,11 @@ func _physics_process(delta: float) -> void:
 	elif is_instance_valid(left_eye) and is_instance_valid(right_eye):
 		left_eye.rotation = Vector3.ZERO
 		right_eye.rotation = Vector3.ZERO
+
+	if is_instance_valid(left_eye) and is_instance_valid(right_eye):
+		var target_eye_scale_y = 0.08 if is_blinking else 1.0
+		left_eye.scale.y = lerp(left_eye.scale.y, target_eye_scale_y, delta * 35.0)
+		right_eye.scale.y = lerp(right_eye.scale.y, target_eye_scale_y, delta * 35.0)
 
 	# --- Interaction & Crosshair Hover Highlight System ---
 	var can_interact = false
@@ -779,28 +857,45 @@ func _physics_process(delta: float) -> void:
 					elif Input.is_action_just_pressed("crouch") and ray_target.has_method("deny_current_guest"):
 						ray_target.deny_current_guest(self)
 			elif ray_target.is_in_group("pickable"):
-				prompt_label.text = "Press [E] to Pick Up Trash"
+				prompt_label.text = "Press [E] to Pick Up"
 				prompt_label.visible = true
 				
 				if Input.is_action_just_pressed("interact"):
-					carried_object = ray_target
-					original_parent = carried_object.get_parent()
-					
-					# Remove targeted hover glow upon pickup
-					if is_instance_valid(hovered_mesh):
-						hovered_mesh.material_overlay = null
-					hovered_mesh = null
-					
-					# Reparent to carry pivot
-					carried_object.reparent(carry_pivot)
-					carried_object.position = Vector3.ZERO
-					carried_object.rotation = Vector3.ZERO
-					carried_object.scale = Vector3.ONE
-					carried_object.freeze = true
-					
-					# Disable collision with player
-					carried_object.set_collision_layer_value(1, false)
-					carried_object.set_collision_mask_value(1, false)
+					# Attempt to add to inventory
+					var added_to_inv = false
+					if inventory:
+						var item_info = {
+							"id": ray_target.name,
+							"name": ray_target.name,
+							"node": ray_target,
+							"icon_texture": load("res://assets/ui/icons/box_icon.png") if ResourceLoader.exists("res://assets/ui/icons/box_icon.png") else null
+						}
+						added_to_inv = inventory.add_item(item_info)
+						
+					if added_to_inv:
+						# Remove targeted hover glow
+						if is_instance_valid(hovered_mesh):
+							hovered_mesh.material_overlay = null
+						hovered_mesh = null
+						original_parent = ray_target.get_parent()
+						
+						# Equip if it landed in the active slot
+						var active_idx = inventory.active_slot_index
+						if active_idx >= 0 and inventory.slots[active_idx] != null and inventory.slots[active_idx].get("node") == ray_target:
+							_equip_node(ray_target)
+						else:
+							_stash_node(ray_target)
+					else:
+						# Inventory is full, or doesn't exist. Just hold it normally.
+						if carried_object == null:
+							carried_object = ray_target
+							original_parent = carried_object.get_parent()
+							
+							if is_instance_valid(hovered_mesh):
+								hovered_mesh.material_overlay = null
+							hovered_mesh = null
+							
+							_equip_node(ray_target)
 	else:
 		# Allow interacting with targets (e.g. TrashBin) while carrying an object
 		if can_interact and is_instance_valid(ray_target) and ray_target.has_method("interact"):
@@ -825,16 +920,10 @@ func _physics_process(delta: float) -> void:
 			for dot in trajectory_dots:
 				dot.visible = false
 			
-			var obj = carried_object
-			carried_object = null
-			
-			if is_instance_valid(obj):
-				obj.set_collision_layer_value(1, true)
-				obj.set_collision_mask_value(1, true)
-				if is_instance_valid(original_parent):
-					obj.reparent(original_parent)
-				obj.scale = Vector3.ONE
-				obj.freeze = false
+			if is_instance_valid(carried_object):
+				var obj = carried_object
+				carried_object = null
+				_drop_carried_object(obj)
 		
 		# Aiming Mode (Hold Left Click)
 		elif Input.is_action_pressed("throw"):
@@ -929,6 +1018,7 @@ func _physics_process(delta: float) -> void:
 			
 			# Discover available animation names from model's AnimationPlayer
 			var walk_anim = "walk" if anim_player.has_animation("walk") else ("Walk" if anim_player.has_animation("Walk") else "Armature|preset_biped_walk")
+			var run_anim = "Run" if anim_player.has_animation("Run") else ("run" if anim_player.has_animation("run") else walk_anim)
 			var idle_anim = "Idle" if anim_player.has_animation("Idle") else ("idle" if anim_player.has_animation("idle") else "Armature|preset_biped_wait")
 			var jump_anim = "jump" if anim_player.has_animation("jump") else ("Jump" if anim_player.has_animation("Jump") else "fbx_jump")
 			var crouch_idle_anim = "Crouch" if anim_player.has_animation("Crouch") else "crouch_idle"
@@ -946,6 +1036,8 @@ func _physics_process(delta: float) -> void:
 						crouch_idle_anim = anim_name
 				elif lower == "jump":
 					jump_anim = anim_name
+				elif lower == "run" or lower == "running" or lower == "sprint":
+					run_anim = anim_name
 			
 			var horizontal_speed = Vector2(velocity.x, velocity.z).length()
 			var anim_to_play = ""
@@ -964,7 +1056,10 @@ func _physics_process(delta: float) -> void:
 					anim_to_play = crouch_idle_anim if anim_player.has_animation(crouch_idle_anim) else idle_anim
 			else:
 				if horizontal_speed > 0.3:
-					anim_to_play = walk_anim if anim_player.has_animation(walk_anim) else ""
+					if is_sprinting and anim_player.has_animation(run_anim):
+						anim_to_play = run_anim
+					else:
+						anim_to_play = walk_anim if anim_player.has_animation(walk_anim) else ""
 				else:
 					anim_to_play = idle_anim if anim_player.has_animation(idle_anim) else ""
 			
@@ -982,6 +1077,8 @@ func _physics_process(delta: float) -> void:
 				
 				if anim_to_play == "Open Door":
 					anim_player.speed_scale = 2.5
+				elif anim_to_play == run_anim:
+					anim_player.speed_scale = clamp(horizontal_speed / 13.0, 0.8, 1.8)
 				elif anim_to_play == crouch_walk_anim:
 					anim_player.speed_scale = clamp(horizontal_speed / 3.0, 0.6, 1.8) * 1.25
 				elif anim_to_play == walk_anim:
@@ -1144,3 +1241,81 @@ func _on_exit_to_main_menu_pressed() -> void:
 	get_tree().paused = false
 	NetworkManager.disconnect_game()
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+
+func _stash_node(n: Node3D) -> void:
+	if is_instance_valid(n):
+		if n.get_parent() != inventory_storage:
+			n.reparent(inventory_storage)
+		n.visible = false
+		if n is RigidBody3D:
+			n.freeze = true
+		n.set_collision_layer_value(1, false)
+		n.set_collision_mask_value(1, false)
+		n.position = Vector3.ZERO
+		n.rotation = Vector3.ZERO
+
+func _equip_node(n: Node3D) -> void:
+	if is_instance_valid(n):
+		if n.get_parent() != carry_pivot:
+			n.reparent(carry_pivot)
+		n.visible = true
+		if n is RigidBody3D:
+			n.freeze = true
+		n.set_collision_layer_value(1, false)
+		n.set_collision_mask_value(1, false)
+		n.position = Vector3.ZERO
+		n.rotation = Vector3.ZERO
+		n.scale = Vector3.ONE
+		carried_object = n
+
+func _drop_carried_object(obj: Node3D) -> void:
+	if not is_instance_valid(obj):
+		return
+	
+	obj.set_collision_layer_value(1, true)
+	obj.set_collision_mask_value(1, true)
+	
+	var parent = original_parent
+	if parent == null or parent == inventory_storage or parent == carry_pivot:
+		parent = get_tree().current_scene
+		
+	if is_instance_valid(parent):
+		obj.reparent(parent)
+		
+	obj.scale = Vector3.ONE
+	if obj is RigidBody3D:
+		obj.freeze = false
+		
+	if inventory:
+		for i in range(inventory.max_slots):
+			if inventory.slots[i] != null and inventory.slots[i].get("node") == obj:
+				inventory.remove_item(i)
+
+func _on_inventory_active_slot_changed(idx: int) -> void:
+	# Stash everything currently in inventory slots
+	if inventory:
+		for i in range(inventory.max_slots):
+			var slot = inventory.slots[i]
+			if slot != null and is_instance_valid(slot.get("node")):
+				var n = slot["node"]
+				if carried_object == n:
+					carried_object = null
+				_stash_node(n)
+	
+	# Drop any non-inventory items currently in hand
+	if carried_object != null:
+		var is_inv_item = false
+		if inventory:
+			for i in range(inventory.max_slots):
+				if inventory.slots[i] != null and inventory.slots[i].get("node") == carried_object:
+					is_inv_item = true
+		if not is_inv_item:
+			var obj = carried_object
+			carried_object = null
+			_drop_carried_object(obj)
+			
+	# Equip the selected slot
+	if inventory and idx >= 0 and idx < inventory.max_slots:
+		var slot_data = inventory.slots[idx]
+		if slot_data != null and is_instance_valid(slot_data.get("node")):
+			_equip_node(slot_data["node"])

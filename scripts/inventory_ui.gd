@@ -72,6 +72,16 @@ func _build_slot_ui() -> void:
 		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		margin.add_child(icon_rect)
 		
+		# Fallback text label if no icon is present
+		var fallback_label = Label.new()
+		fallback_label.name = "FallbackLabel"
+		fallback_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		fallback_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		fallback_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		fallback_label.add_theme_font_size_override("font_size", 11)
+		fallback_label.visible = false
+		margin.add_child(fallback_label)
+		
 		slot_container.add_child(slot_panel)
 		slot_nodes.append(slot_panel)
 
@@ -84,14 +94,24 @@ func _on_inventory_updated() -> void:
 	for i in range(slot_nodes.size()):
 		var slot_panel = slot_nodes[i]
 		var icon_rect = slot_panel.find_child("Icon", true, false) as TextureRect
+		var fallback_label = slot_panel.find_child("FallbackLabel", true, false) as Label
 		var item_data = inventory.slots[i]
 		
-		if item_data != null and item_data.has("icon_texture"):
-			icon_rect.texture = item_data["icon_texture"]
-			icon_rect.visible = true
+		if item_data != null:
+			if item_data.get("icon_texture") != null:
+				icon_rect.texture = item_data["icon_texture"]
+				icon_rect.visible = true
+				if fallback_label: fallback_label.visible = false
+			else:
+				icon_rect.texture = null
+				icon_rect.visible = false
+				if fallback_label:
+					fallback_label.text = str(item_data.get("name", "Item"))
+					fallback_label.visible = true
 		else:
 			icon_rect.texture = null
 			icon_rect.visible = false
+			if fallback_label: fallback_label.visible = false
 
 func _update_slot_highlights() -> void:
 	var active_idx = inventory.active_slot_index if inventory else -1
