@@ -86,7 +86,11 @@ var current_head_pitch: float = 0.0
 var blink_timer: float = 3.0
 var blink_duration: float = 0.0
 var landing_squash: float = 0.0
+var jump_stretch: float = 0.0
 var prev_vel_y: float = 0.0
+var camera_dip_pitch: float = 0.0
+var camera_strafe_roll: float = 0.0
+var idle_bob_time: float = 0.0
 
 func play_action_anim(anim: String, duration: float = 1.0) -> void:
 	action_anim_name = anim
@@ -493,10 +497,13 @@ func _physics_process(delta: float) -> void:
 	# Handle Jump
 	if Input.is_action_just_pressed("jump") and is_on_floor() and not is_crouching:
 		velocity.y = JUMP_VELOCITY
+		jump_stretch = 0.25 # Anticipation vertical stretch
 
 	var just_landed = is_on_floor() and not was_on_floor
 	if just_landed and prev_vel_y < -3.0:
 		landing_squash = clamp(abs(prev_vel_y) * 0.02, 0.05, 0.22)
+		if prev_vel_y < -6.0:
+			camera_dip_pitch = clamp(abs(prev_vel_y) * 0.015, 0.05, 0.25)
 	prev_vel_y = velocity.y
 	was_on_floor = is_on_floor()
 
@@ -541,15 +548,15 @@ func _physics_process(delta: float) -> void:
 	var body_target_pitch = (vertical_look * BODY_TILT_AMOUNT) + (local_vel.z * lean_factor)
 	if carried_object != null:
 		body_target_pitch -= 0.12 # Lean backward to simulate weight strain
-	var body_target_roll = -local_vel.x * 0.025
 	
 	body_mesh.rotation.x = lerp_angle(body_mesh.rotation.x, body_target_pitch, delta * 10.0)
-	body_mesh.rotation.z = lerp_angle(body_mesh.rotation.z, body_target_roll, delta * 10.0)
+	body_mesh.rotation.z = lerp_angle(body_mesh.rotation.z, 0.0, delta * 10.0)
 
-	# Dynamic Landing Squash & Stretch Physics
+	# Dynamic Landing Squash & Stretch Physics + Jump Anticipation
 	landing_squash = move_toward(landing_squash, 0.0, delta * 3.5)
-	var squash_y = 1.0 - landing_squash
-	var stretch_xz = 1.0 + (landing_squash * 0.5)
+	jump_stretch = move_toward(jump_stretch, 0.0, delta * 4.0)
+	var squash_y = 1.0 - landing_squash + jump_stretch
+	var stretch_xz = 1.0 + (landing_squash * 0.5) - (jump_stretch * 0.25)
 	body_mesh.scale = Vector3(stretch_xz, squash_y, stretch_xz)
 
 	# Update CarryPivot to follow body mesh rotation/position without inheriting its squash & stretch scale
@@ -569,12 +576,19 @@ func _physics_process(delta: float) -> void:
 	
 	if is_on_floor() and horizontal_velocity.length() > 0.1:
 		t_bob += delta * horizontal_velocity.length()
+		idle_bob_time = 0.0
 		var new_head_pos = base_head_pos
 		new_head_pos.y += sin(t_bob * BOB_FREQ) * BOB_AMP
 		new_head_pos.x += cos(t_bob * BOB_FREQ / 2.0) * BOB_AMP * 0.5
 		head.position = head.position.lerp(new_head_pos, delta * 10.0)
 	else:
-		head.position = head.position.lerp(base_head_pos, delta * 10.0)
+		idle_bob_time += delta
+		var breathing_offset = Vector3(
+			cos(idle_bob_time * 1.5) * 0.008,
+			sin(idle_bob_time * 2.0) * 0.012,
+			0.0
+		)
+		head.position = head.position.lerp(base_head_pos + breathing_offset, delta * 6.0)
 
 	# --- Hand & Foot Sway Animations (Only for procedural primitive block model) ---
 	var citrus_model = body_mesh.get_node_or_null("CitrusModel")
@@ -679,9 +693,10 @@ func _physics_process(delta: float) -> void:
 	var current_intensity = sprint_lines.material.get_shader_parameter("sprint_intensity")
 	sprint_lines.material.set_shader_parameter("sprint_intensity", lerp(current_intensity, target_intensity, delta * 10.0))
 	
-	# Apply camera zoom (decreasing FOV) when zoom_level > 0
+	# Apply dynamic camera zoom and FOV scaling based on velocity
 	var base_target_fov = lerp(BASE_FOV, 35.0, zoom_level)
-	var target_fov = SPRINT_FOV if is_running else base_target_fov
+	var speed_fov_boost = clamp(velocity.length() * 0.8, 0.0, 25.0)
+	var target_fov = base_target_fov + speed_fov_boost
 	camera.fov = lerp(camera.fov, target_fov, delta * 8.0)
 
 	# --- Eye Squinting (Shader parameter uniform) ---
@@ -697,7 +712,9 @@ func _physics_process(delta: float) -> void:
 	# --- Perspective (Isometric/First/Third/Front View) logic ---
 	var target_spring_length = 0.0
 	var target_spring_yaw = 0.0
-	var target_head_pitch = vertical_look
+	
+	camera_dip_pitch = move_toward(camera_dip_pitch, 0.0, delta * 2.0)
+	var target_head_pitch = vertical_look - camera_dip_pitch
 	
 	match current_camera_mode:
 		CameraMode.FIRST_PERSON:
@@ -713,6 +730,10 @@ func _physics_process(delta: float) -> void:
 	spring_arm.spring_length = lerp(spring_arm.spring_length, target_spring_length, delta * 15.0)
 	spring_arm.rotation.y = target_spring_yaw
 	head.rotation.x = target_head_pitch
+	
+	# Reset Camera Strafe Roll
+	camera_strafe_roll = 0.0
+	camera.rotation.z = 0.0
 	
 	# --- 3D Character Head Tilt (Look Up / Down with Camera) ---
 	if citrus_model and current_camera_mode != CameraMode.FIRST_PERSON:
